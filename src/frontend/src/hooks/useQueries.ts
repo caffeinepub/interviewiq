@@ -20,7 +20,17 @@ export function useGetAllQuestions() {
     queryKey: ["questions"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllQuestions();
+      try {
+        return await actor.getAllQuestions();
+      } catch (err) {
+        // Backend traps if user is not registered (e.g. anonymous actor or unregistered user).
+        // Return empty array instead of crashing the UI.
+        console.warn(
+          "getAllQuestions failed (user may not be registered):",
+          err,
+        );
+        return [];
+      }
     },
     enabled: !!actor && !isFetching,
   });

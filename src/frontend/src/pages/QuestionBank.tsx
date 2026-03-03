@@ -45,6 +45,7 @@ import {
   Edit2,
   Filter,
   Loader2,
+  LogIn,
   Plus,
   Search,
   Tag,
@@ -55,6 +56,7 @@ import { toast } from "sonner";
 import { Difficulty } from "../backend.d";
 import type { Question } from "../backend.d";
 import { DifficultyBadge } from "../components/StatusBadge";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAddQuestion,
   useDeleteQuestion,
@@ -63,7 +65,7 @@ import {
   useUpdateQuestion,
 } from "../hooks/useQueries";
 
-interface SeedQuestion {
+export interface SeedQuestion {
   title: string;
   description: string;
   category: string;
@@ -73,7 +75,7 @@ interface SeedQuestion {
 
 // Seed questions sourced from the Answer Guide — these are the 10 classic interview questions
 // with full descriptions, what-they-want-to-know context, and model answer strategies.
-const SEED_QUESTIONS: SeedQuestion[] = [
+export const SEED_QUESTIONS: SeedQuestion[] = [
   {
     title: "Tell Me About Yourself",
     description:
@@ -366,6 +368,8 @@ function QuestionForm({
 }
 
 export function QuestionBank() {
+  const { identity, login, isLoggingIn } = useInternetIdentity();
+  const isAuthenticated = !!identity;
   const { data: questions, isLoading } = useGetAllQuestions();
   const { data: isAdmin } = useIsCallerAdmin();
   const addQuestion = useAddQuestion();
@@ -474,6 +478,44 @@ export function QuestionBank() {
     }
   };
 
+  // Show sign-in prompt for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center py-16">
+        <Card
+          className="border-border/60 max-w-md w-full text-center shadow-sm"
+          data-ocid="questions.signin_card"
+        >
+          <CardContent className="pt-10 pb-8 px-8">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-2 ring-primary/20 mx-auto mb-5">
+              <BookOpen className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="font-display text-2xl font-bold mb-2">
+              Question Bank
+            </h2>
+            <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
+              Sign in to browse, search, and manage interview questions. Admins
+              can also add, edit, and seed questions from the Answer Guide.
+            </p>
+            <Button
+              onClick={login}
+              disabled={isLoggingIn}
+              className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              data-ocid="questions.signin_button"
+            >
+              {isLoggingIn ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="h-4 w-4" />
+              )}
+              {isLoggingIn ? "Connecting..." : "Sign In to View Questions"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8 space-y-6">
       {/* Header */}
@@ -488,7 +530,7 @@ export function QuestionBank() {
         </div>
 
         <div className="flex items-center gap-2">
-          {(isAdmin || questions?.length === 0) && !isLoading && (
+          {isAdmin && !isLoading && (
             <Button
               variant="outline"
               className="gap-2"

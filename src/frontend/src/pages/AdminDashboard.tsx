@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,7 @@ import {
   Lightbulb,
   Loader2,
   Shield,
+  Sparkles,
   UserCog,
   Users,
 } from "lucide-react";
@@ -36,10 +38,12 @@ import { toast } from "sonner";
 import { UserRole } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
+  useAddQuestion,
   useAssignUserRole,
   useGetAllQuestions,
   useIsCallerAdmin,
 } from "../hooks/useQueries";
+import { SEED_QUESTIONS } from "./QuestionBank";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -48,9 +52,45 @@ export function AdminDashboard() {
   const { data: questions, isLoading: questionsLoading } = useGetAllQuestions();
   const assignRole = useAssignUserRole();
 
+  const addQuestion = useAddQuestion();
+
   const [principalId, setPrincipalId] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.user);
   const [formError, setFormError] = useState("");
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedProgress, setSeedProgress] = useState(0);
+  const [seedTotal] = useState(SEED_QUESTIONS.length);
+
+  const handleSeedQuestions = async () => {
+    setIsSeeding(true);
+    setSeedProgress(0);
+    let seeded = 0;
+    try {
+      for (const q of SEED_QUESTIONS) {
+        await addQuestion.mutateAsync({
+          title: q.title,
+          description: q.description,
+          category: q.category,
+          difficulty: q.difficulty,
+          tags: q.tags,
+        });
+        seeded++;
+        setSeedProgress(seeded);
+      }
+      toast.success(
+        `Question bank seeded with ${seeded} questions from the Answer Guide!`,
+      );
+    } catch (err) {
+      toast.error(
+        seeded > 0
+          ? `Seeding stopped at ${seeded}/${seedTotal} — some questions may have been skipped.`
+          : "Failed to seed questions. Make sure you are signed in as admin.",
+      );
+      console.error(err);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   // Redirect to admin portal if not admin
   useEffect(() => {
@@ -245,6 +285,78 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Seed Questions from Answer Guide */}
+      <Card className="border-border/60" data-ocid="admin.seed_section">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <CardTitle className="font-display text-lg">
+              Seed Question Bank
+            </CardTitle>
+          </div>
+          <CardDescription>
+            Load all {seedTotal} classic interview questions from the Answer
+            Guide into the question bank with one click. Questions include full
+            descriptions, what-they-want-to-know context, and model answer
+            strategies.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg bg-muted/40 border border-border/60 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-sm font-medium">
+                  {questions?.length ?? 0} questions currently in bank
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {seedTotal} Answer Guide questions ready to load
+                </p>
+              </div>
+              <Badge
+                variant="outline"
+                className="border-primary/30 bg-primary/5 text-primary text-xs"
+              >
+                {seedTotal} Questions
+              </Badge>
+            </div>
+
+            {isSeeding && (
+              <div
+                className="space-y-2 mt-3"
+                data-ocid="admin.seed_loading_state"
+              >
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Seeding questions...</span>
+                  <span>
+                    {seedProgress} / {seedTotal}
+                  </span>
+                </div>
+                <Progress
+                  value={(seedProgress / seedTotal) * 100}
+                  className="h-2"
+                />
+              </div>
+            )}
+          </div>
+
+          <Button
+            onClick={handleSeedQuestions}
+            disabled={isSeeding}
+            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            data-ocid="admin.seed_questions_button"
+          >
+            {isSeeding ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Database className="h-4 w-4" />
+            )}
+            {isSeeding
+              ? `Seeding… (${seedProgress}/${seedTotal})`
+              : "Seed Questions from Answer Guide"}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Role Management */}
       <Card className="border-border/60" data-ocid="admin.role_section">
