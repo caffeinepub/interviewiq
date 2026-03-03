@@ -10,9 +10,9 @@ import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -104,6 +104,17 @@ actor {
   let candidateProfiles = Map.empty<Principal, CandidateProfile>();
   let interviewSessions = Map.empty<Nat, SessionData>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  public shared ({ caller }) func claimFirstAdmin() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous identities cannot claim the first admin role");
+    };
+    AccessControl.assignRole(accessControlState, caller, caller, #admin);
+  };
+
+  public query func getAdminAssigned() : async Bool {
+    AccessControl.isAdmin(accessControlState, Principal.fromText("2vxsx-fae"));
+  };
 
   // User Profile Management (required by frontend)
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -240,7 +251,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view sessions");
     };
-    
+
     switch (interviewSessions.get(sessionId)) {
       case (null) { null };
       case (?data) {
@@ -623,3 +634,4 @@ actor {
     interviewSessions.add(sessionId, updatedData);
   };
 };
+

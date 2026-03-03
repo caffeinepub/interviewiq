@@ -378,3 +378,31 @@ export function useAssignUserRole() {
     },
   });
 }
+
+export function useGetAdminAssigned() {
+  const { actor, isFetching } = useActor();
+  return useQuery<boolean>({
+    queryKey: ["adminAssigned"],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.getAdminAssigned();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useClaimFirstAdmin() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Not connected");
+      return actor.claimFirstAdmin();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["isAdmin"] });
+      void qc.invalidateQueries({ queryKey: ["callerRole"] });
+      void qc.invalidateQueries({ queryKey: ["adminAssigned"] });
+    },
+  });
+}

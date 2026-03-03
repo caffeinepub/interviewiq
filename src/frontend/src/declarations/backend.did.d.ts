@@ -65,6 +65,7 @@ export interface _SERVICE {
     bigint
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'claimFirstAdmin' : ActorMethod<[], undefined>,
   'createCandidateProfile' : ActorMethod<
     [string, string, string, string],
     undefined
@@ -76,6 +77,7 @@ export interface _SERVICE {
   'createMockInterview' : ActorMethod<[Array<bigint>, bigint], bigint>,
   'deleteQuestion' : ActorMethod<[bigint], undefined>,
   'flagSession' : ActorMethod<[bigint, string], undefined>,
+  'getAdminAssigned' : ActorMethod<[], boolean>,
   'getAllQuestions' : ActorMethod<[], Array<Question>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,

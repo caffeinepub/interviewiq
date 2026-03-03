@@ -149,11 +149,13 @@ export interface backendInterface {
     addOverallAssessment(sessionId: bigint, overallScore: bigint, feedback: string): Promise<void>;
     addQuestion(title: string, description: string, category: string, difficulty: Difficulty, tags: Array<string>): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    claimFirstAdmin(): Promise<void>;
     createCandidateProfile(name: string, email: string, targetRole: string, experienceLevel: string): Promise<void>;
     createInterviewSession(candidate: Principal, questionIds: Array<bigint>, timeLimitMinutes: bigint): Promise<bigint>;
     createMockInterview(questionIds: Array<bigint>, timeLimitMinutes: bigint): Promise<bigint>;
     deleteQuestion(id: bigint): Promise<void>;
     flagSession(sessionId: bigint, note: string): Promise<void>;
+    getAdminAssigned(): Promise<boolean>;
     getAllQuestions(): Promise<Array<Question>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -229,6 +231,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async claimFirstAdmin(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.claimFirstAdmin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.claimFirstAdmin();
+            return result;
+        }
+    }
     async createCandidateProfile(arg0: string, arg1: string, arg2: string, arg3: string): Promise<void> {
         if (this.processError) {
             try {
@@ -296,6 +312,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.flagSession(arg0, arg1);
+            return result;
+        }
+    }
+    async getAdminAssigned(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAdminAssigned();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAdminAssigned();
             return result;
         }
     }

@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   Copy,
   Database,
+  Info,
   Lightbulb,
   Loader2,
   Shield,
@@ -377,29 +378,34 @@ export function AdminDashboard() {
           <form onSubmit={handleAssignRole} className="space-y-5">
             {/* Quick self-assign shortcut */}
             {identity && (
-              <div className="rounded-lg bg-muted/40 border border-border/60 p-3 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium text-foreground">
-                    Your Principal ID
-                  </p>
-                  <p className="font-mono text-xs text-muted-foreground truncate max-w-xs">
-                    {principalFull}
-                  </p>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                  Quick-assign to yourself
+                </p>
+                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">
+                      Your Principal ID
+                    </p>
+                    <p className="font-mono text-xs text-muted-foreground truncate max-w-xs">
+                      {principalFull}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    className="shrink-0 gap-1.5 text-xs bg-primary/90 hover:bg-primary"
+                    onClick={() => {
+                      setPrincipalId(principalFull);
+                      setFormError("");
+                    }}
+                    data-ocid="admin.use_own_principal_button"
+                  >
+                    <UserCog className="h-3.5 w-3.5" />
+                    Use Mine
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 gap-1.5 text-xs"
-                  onClick={() => {
-                    setPrincipalId(principalFull);
-                    setFormError("");
-                  }}
-                  data-ocid="admin.use_own_principal_button"
-                >
-                  <UserCog className="h-3.5 w-3.5" />
-                  Use Mine
-                </Button>
               </div>
             )}
 
@@ -457,6 +463,12 @@ export function AdminDashboard() {
                       User
                     </div>
                   </SelectItem>
+                  <SelectItem value={UserRole.guest}>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                      Guest
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -495,6 +507,17 @@ export function AdminDashboard() {
                   Assignment failed
                 </div>
               )}
+            </div>
+
+            <div className="rounded-md bg-muted/40 border border-border/60 px-3 py-2.5 flex items-start gap-2">
+              <Info className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                After assigning the admin role to a new user, they must{" "}
+                <span className="font-medium text-foreground">
+                  sign out and sign back in
+                </span>{" "}
+                for the role to take effect.
+              </p>
             </div>
           </form>
         </CardContent>

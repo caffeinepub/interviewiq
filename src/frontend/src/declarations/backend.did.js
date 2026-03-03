@@ -71,6 +71,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'claimFirstAdmin' : IDL.Func([], [], []),
   'createCandidateProfile' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [],
@@ -84,6 +85,7 @@ export const idlService = IDL.Service({
   'createMockInterview' : IDL.Func([IDL.Vec(IDL.Nat), IDL.Nat], [IDL.Nat], []),
   'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
   'flagSession' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'getAdminAssigned' : IDL.Func([], [IDL.Bool], ['query']),
   'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -183,6 +185,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'claimFirstAdmin' : IDL.Func([], [], []),
     'createCandidateProfile' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [],
@@ -200,6 +203,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
     'flagSession' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'getAdminAssigned' : IDL.Func([], [IDL.Bool], ['query']),
     'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
