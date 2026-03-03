@@ -59,6 +59,7 @@ import {
   useAddQuestion,
   useDeleteQuestion,
   useGetAllQuestions,
+  useIsCallerAdmin,
   useUpdateQuestion,
 } from "../hooks/useQueries";
 
@@ -197,6 +198,87 @@ const SEED_QUESTIONS: SeedQuestion[] = [
     difficulty: Difficulty.hard,
     tags: ["database", "indexing", "performance", "SQL"],
   },
+  // Interview Questions
+  {
+    title: "Tell Me About Yourself",
+    description:
+      "Opening question used to set the tone and break the ice. They want a concise, professional pitch covering your present role, past relevant experience, and why you are excited about the future. Not a full life story — keep it under 2 minutes.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "introduction", "pitch"],
+  },
+  {
+    title: "Why Do You Want to Work for This Company?",
+    description:
+      "Tests your research and genuine interest in the organization. They want to see that you understand their mission, values, and product, and that you fit their culture. Show you want this specific job, not just any job.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "research", "motivation"],
+  },
+  {
+    title: "What Are Your Strengths?",
+    description:
+      "An opportunity to boast professionally, but it must be tailored to the job. They are looking for skills listed in the job description that you can prove you possess. Share 2-3 specific, relevant strengths with concrete examples.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "strengths", "self-awareness"],
+  },
+  {
+    title: "What Is Your Greatest Weakness?",
+    description:
+      "Evaluates self-awareness and honesty. They want to know if you can identify areas for improvement and if you are proactively working on them. Avoid disguised strengths like 'I work too hard' — share a genuine, manageable weakness.",
+    category: "Interview",
+    difficulty: Difficulty.medium,
+    tags: ["behavioral", "weakness", "self-awareness", "growth"],
+  },
+  {
+    title: "Why Should We Hire You?",
+    description:
+      "A chance to sell yourself directly. All candidates are likely qualified — this is your opportunity to differentiate yourself by highlighting your unique skills, experience, and the specific value you will bring to the team.",
+    category: "Interview",
+    difficulty: Difficulty.medium,
+    tags: ["behavioral", "value-proposition", "differentiation"],
+  },
+  {
+    title: "Tell Me About a Time You Faced a Challenge or Conflict at Work",
+    description:
+      "A behavioral question to assess problem-solving and interpersonal skills. They are evaluating your emotional intelligence, ability to handle pressure, and conflict resolution style. Use the STAR method: Situation, Task, Action, Result.",
+    category: "Interview",
+    difficulty: Difficulty.medium,
+    tags: ["behavioral", "STAR", "conflict-resolution", "problem-solving"],
+  },
+  {
+    title: "Why Are You Leaving Your Current Job?",
+    description:
+      "Evaluates your professionalism and motivations. They want to ensure you are not leaving due to a major, repetitive negative issue. Focus on seeking new opportunities, growth, or a better fit — never bad-mouth your previous employer.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "professionalism", "motivation", "career"],
+  },
+  {
+    title: "Where Do You See Yourself in Five Years?",
+    description:
+      "Assesses your career goals and potential loyalty. They are looking for realistic career ambitions that align with the company's trajectory, checking if this role is a good stepping stone for you — indicating longevity.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "career-goals", "ambition", "loyalty"],
+  },
+  {
+    title: "How Do You Prioritize Your Work?",
+    description:
+      "Evaluates organizational skills and productivity. They want to know your methods for handling multiple tasks, deadlines, and stress. Include specific tools (calendars, task lists) and techniques to maintain high quality under pressure.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "organization", "productivity", "time-management"],
+  },
+  {
+    title: "Do You Have Any Questions for Us?",
+    description:
+      "The final opportunity to show engagement. Asking thoughtful questions about the team, culture, or future projects shows you are serious, curious, and prepared. Saying 'no' can make you look uninterested — always prepare 2-3 questions.",
+    category: "Interview",
+    difficulty: Difficulty.easy,
+    tags: ["behavioral", "engagement", "curiosity", "preparation"],
+  },
 ];
 
 interface QuestionFormData {
@@ -225,6 +307,7 @@ const sampleCategories = [
   "Database",
   "DevOps",
   "Security",
+  "Interview",
 ];
 
 function QuestionForm({
@@ -374,6 +457,7 @@ function QuestionForm({
 
 export function QuestionBank() {
   const { data: questions, isLoading } = useGetAllQuestions();
+  const { data: isAdmin } = useIsCallerAdmin();
   const addQuestion = useAddQuestion();
   const updateQuestion = useUpdateQuestion();
   const deleteQuestion = useDeleteQuestion();
@@ -494,7 +578,7 @@ export function QuestionBank() {
         </div>
 
         <div className="flex items-center gap-2">
-          {questions?.length === 0 && !isLoading && (
+          {(isAdmin || questions?.length === 0) && !isLoading && (
             <Button
               variant="outline"
               className="gap-2"

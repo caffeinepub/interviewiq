@@ -9,9 +9,12 @@ import {
 } from "@tanstack/react-router";
 import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
+import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminPage } from "./pages/AdminPage";
 import { AssessmentReport } from "./pages/AssessmentReport";
 import { CandidateDashboard } from "./pages/CandidateDashboard";
 import { EvaluatorDashboard } from "./pages/EvaluatorDashboard";
+import { InterviewAnswers } from "./pages/InterviewAnswers";
 import { InterviewSession } from "./pages/InterviewSession";
 import { LandingPage } from "./pages/LandingPage";
 import { MockInterviewSetup } from "./pages/MockInterviewSetup";
@@ -81,6 +84,24 @@ const questionsRoute = createRoute({
   component: QuestionBank,
 });
 
+const interviewAnswersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/interview-answers",
+  component: InterviewAnswers,
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: AdminPage,
+});
+
+const adminDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/dashboard",
+  component: AdminDashboard,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -91,6 +112,9 @@ const routeTree = rootRoute.addChildren([
   sessionReportRoute,
   evaluatorRoute,
   questionsRoute,
+  interviewAnswersRoute,
+  adminRoute,
+  adminDashboardRoute,
 ]);
 
 const router = createRouter({ routeTree });

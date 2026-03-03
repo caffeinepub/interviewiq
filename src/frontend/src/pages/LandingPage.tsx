@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Clock,
   Layers,
+  Shield,
   ShieldCheck,
   Star,
   Users,
@@ -162,6 +163,18 @@ export function LandingPage() {
               >
                 <Link to="/questions">View Question Bank</Link>
               </Button>
+            </div>
+
+            {/* Admin Portal subtle link */}
+            <div className="mt-5 flex justify-center">
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                data-ocid="landing.admin_link"
+              >
+                <Shield size={11} />
+                Admin Portal
+              </Link>
             </div>
           </div>
 

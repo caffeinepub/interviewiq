@@ -13,10 +13,12 @@ import {
   BrainCircuit,
   ChevronDown,
   LayoutDashboard,
+  Lightbulb,
   Loader2,
   LogIn,
   LogOut,
   PlayCircle,
+  Shield,
   Users,
 } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -64,10 +66,24 @@ export function Navbar() {
                 active={location.pathname.startsWith("/mock-interview")}
                 ocid="nav.mock_link"
               />
+              <NavLink
+                to="/interview-answers"
+                label="Answer Guide"
+                icon={<Lightbulb size={15} />}
+                active={location.pathname === "/interview-answers"}
+                ocid="nav.answers_link"
+              />
             </>
           )}
           {isAuthenticated && isAdmin && (
             <>
+              <NavLink
+                to="/admin/dashboard"
+                label="Admin Portal"
+                icon={<Shield size={15} />}
+                active={location.pathname.startsWith("/admin")}
+                ocid="nav.admin_link"
+              />
               <NavLink
                 to="/evaluator"
                 label="Evaluator"
@@ -81,6 +97,13 @@ export function Navbar() {
                 icon={<BookOpen size={15} />}
                 active={location.pathname === "/questions"}
                 ocid="nav.questions_link"
+              />
+              <NavLink
+                to="/interview-answers"
+                label="Answer Guide"
+                icon={<Lightbulb size={15} />}
+                active={location.pathname === "/interview-answers"}
+                ocid="nav.answers_link"
               />
             </>
           )}
@@ -119,15 +142,32 @@ export function Navbar() {
                 data-ocid="nav.dropdown_menu"
               >
                 {!isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/candidate" data-ocid="nav.dashboard_link">
-                      <LayoutDashboard size={14} className="mr-2" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/candidate" data-ocid="nav.dashboard_link">
+                        <LayoutDashboard size={14} className="mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/interview-answers"
+                        data-ocid="nav.answers_link"
+                      >
+                        <Lightbulb size={14} className="mr-2" />
+                        Answer Guide
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 {isAdmin && (
                   <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard" data-ocid="nav.admin_link">
+                        <Shield size={14} className="mr-2" />
+                        Admin Portal
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/evaluator" data-ocid="nav.dashboard_link">
                         <Users size={14} className="mr-2" />
@@ -138,6 +178,15 @@ export function Navbar() {
                       <Link to="/questions" data-ocid="nav.questions_link">
                         <BookOpen size={14} className="mr-2" />
                         Question Bank
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/interview-answers"
+                        data-ocid="nav.answers_link"
+                      >
+                        <Lightbulb size={14} className="mr-2" />
+                        Answer Guide
                       </Link>
                     </DropdownMenuItem>
                   </>

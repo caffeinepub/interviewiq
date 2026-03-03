@@ -137,15 +137,14 @@ export function OnboardingPage() {
               Welcome, Admin!
             </h2>
             <p className="text-muted-foreground mb-6">
-              Your evaluator account is ready. Access the Evaluator Dashboard to
-              create interview sessions, score candidates, and manage the
-              question bank.
+              Your admin account is ready. Access the Admin Dashboard to manage
+              roles, create interview sessions, and control the question bank.
             </p>
             <Button
               className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => navigate({ to: "/evaluator" })}
+              onClick={() => navigate({ to: "/admin/dashboard" })}
             >
-              Go to Evaluator Dashboard
+              Go to Admin Dashboard
             </Button>
           </CardContent>
         </Card>

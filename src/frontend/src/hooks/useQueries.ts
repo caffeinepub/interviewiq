@@ -340,3 +340,18 @@ export function useDeleteQuestion() {
     },
   });
 }
+
+export function useAssignUserRole() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { user: never; role: UserRole }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.assignCallerUserRole(data.user, data.role);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["callerRole"] });
+      void qc.invalidateQueries({ queryKey: ["isAdmin"] });
+    },
+  });
+}
