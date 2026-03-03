@@ -11,6 +11,7 @@ import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminPage } from "./pages/AdminPage";
+import { AdmissionsPortal } from "./pages/AdmissionsPortal";
 import { AssessmentReport } from "./pages/AssessmentReport";
 import { CandidateDashboard } from "./pages/CandidateDashboard";
 import { EvaluatorDashboard } from "./pages/EvaluatorDashboard";
@@ -102,6 +103,12 @@ const adminDashboardRoute = createRoute({
   component: AdminDashboard,
 });
 
+const admissionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admissions",
+  component: AdmissionsPortal,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -115,6 +122,7 @@ const routeTree = rootRoute.addChildren([
   interviewAnswersRoute,
   adminRoute,
   adminDashboardRoute,
+  admissionsRoute,
 ]);
 
 const router = createRouter({ routeTree });

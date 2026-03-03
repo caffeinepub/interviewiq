@@ -9,6 +9,7 @@ import {
   BrainCircuit,
   CheckCircle2,
   Clock,
+  GraduationCap,
   Layers,
   Shield,
   ShieldCheck,
@@ -132,37 +133,38 @@ export function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button
+                asChild
+                size="lg"
+                className="gap-2 bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 transition-all"
+              >
+                <Link to="/admissions" data-ocid="landing.admissions_button">
+                  <GraduationCap size={16} />
+                  Candidate Admissions Portal
+                  <ArrowRight size={16} />
+                </Link>
+              </Button>
               {identity ? (
                 <Button
                   asChild
+                  variant="outline"
                   size="lg"
-                  className="gap-2 bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 transition-all"
+                  className="gap-2 border-border/60"
                 >
                   <Link to="/candidate" data-ocid="landing.get_started_button">
                     Go to Dashboard
-                    <ArrowRight size={16} />
                   </Link>
                 </Button>
               ) : (
                 <Button
-                  onClick={login}
-                  disabled={isLoggingIn}
+                  variant="outline"
                   size="lg"
-                  className="gap-2 bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 transition-all"
-                  data-ocid="landing.get_started_button"
+                  className="gap-2 border-border/60"
+                  asChild
                 >
-                  {isLoggingIn ? "Connecting..." : "Get Started Free"}
-                  <ArrowRight size={16} />
+                  <Link to="/questions">View Question Bank</Link>
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="lg"
-                className="gap-2 border-border/60"
-                asChild
-              >
-                <Link to="/questions">View Question Bank</Link>
-              </Button>
             </div>
 
             {/* Admin Portal subtle link */}

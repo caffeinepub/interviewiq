@@ -1,46 +1,55 @@
 # InterviewIQ
 
 ## Current State
-
-- Full-stack interview platform with Motoko backend and React frontend
-- Authorization mixin in place with `isCallerAdmin()`, `getCallerUserRole()`, `assignCallerUserRole()` APIs
-- Backend: admin-only question CRUD, session management, candidate profiles
-- Frontend: 9 pages (Landing, Onboarding, CandidateDashboard, EvaluatorDashboard, QuestionBank, InterviewSession, AssessmentReport, MockInterviewSetup, InterviewAnswers)
-- Navbar shows Admin badge and routes based on `isCallerAdmin()` result
-- QuestionBank already has 25 seed questions (15 technical + 10 interview), but seed button only appears when question count is 0
-- No dedicated admin login or admin management page exists
-- No way for an admin to assign the admin role to other users from the UI
+The app has:
+- Admin Portal at `/admin` (sign in, self-promote to admin)
+- Admin Dashboard at `/admin/dashboard`
+- Candidate Dashboard at `/candidate`
+- Mock Interview setup at `/mock-interview/new`
+- Interview Session at `/session/$id`
+- Question Bank, Evaluator Dashboard, Answer Guide, Assessment Report pages
+- Navbar only shows Admin Portal link when user is already admin — non-admin users have no way to find `/admin`
+- Landing page doesn't surface a visible "Admin Portal" link consistently
+- Candidate test process exists but lacks a guided entry point and clear step-by-step flow
+- No dedicated "Candidate Test Portal" / admissions portal page
 
 ## Requested Changes (Diff)
 
 ### Add
-- `/admin` route: Admin Login & Management page
-  - "Become Admin" section: button that calls `assignCallerUserRole(caller, #admin)` so the logged-in user grants themselves admin
-  - "Assign Role to User" form: input for principal ID + role select (admin/user) + submit calling `assignCallerUserRole`
-  - Current role display showing the caller's role
-  - Clear instructions on what admin role unlocks
-- Admin Dashboard page at `/admin/dashboard`:
-  - Quick stats (question count, links to evaluator panel and question bank)
-  - Role management table: display current user's role and quick action to self-promote to admin
-- Seed Questions button should always be visible to admins (not just when count = 0)
-- All 25 existing seed questions are already in the code; ensure they remain
+- **Admissions Portal page** at `/admissions`: A dedicated portal for candidates to enter, see their status, begin a test, and track progress. Includes:
+  - Sign in prompt for unauthenticated users
+  - After login: onboarding check (if no candidate profile, prompt to complete it)
+  - Test selection: browse available mock tests and start one
+  - Active test card with "Continue" if session in progress
+  - Completed test card with score and "View Report" link
+  - Clear step-by-step test process guide (3 steps: Sign In → Select Test → Answer & Submit)
+- **Navbar "Admissions" link**: visible to ALL users (authenticated or not) to surface the admissions portal
+- **Admin Portal link visible always in navbar**: Move the Admin Portal link to a subtle "Admin" text link in navbar footer area or add it as a discrete link for unauthenticated users on the landing page
 
 ### Modify
-- Navbar: add "Admin" nav link for admin users pointing to `/admin/dashboard`
-- OnboardingPage: after admin check, redirect admins to `/admin/dashboard` instead of `/evaluator`
-- LandingPage: add "Admin Login" secondary link for admins/evaluators
-- QuestionBank: show Seed Questions button to admins always (currently only shown when count === 0)
+- **Navbar**: Add "Admissions" link visible to everyone (not just admins). Keep existing admin/user nav links. Add "Admin Portal" link visible to unauthenticated/non-admin users as a small secondary link.
+- **Landing page**: Add a visible "Candidate Test Portal" / "Admissions" CTA alongside the existing hero CTAs. Also surface the Admin Portal link clearly.
+- **App.tsx**: Add route for `/admissions`
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
+1. Create `AdmissionsPortal.tsx` page:
+   - Unauthenticated: Hero with platform overview, sign in CTA, step-by-step test process (3 cards), and clear instructions
+   - Authenticated: Show candidate profile summary (name, role), active sessions list from backend, option to start new mock test, completed sessions with scores
+   - Step guide: Step 1 (Create Profile / Onboarding) → Step 2 (Select Questions) → Step 3 (Answer & Submit)
+   - Uses `useGetCallerUserProfile`, `useGetCandidateProfile`, `useGetAllQuestions` hooks
+   - "Start Test" button navigates to `/mock-interview/new`
+   - Full data-ocid markers on all interactive elements
 
-1. Add `getUsersByRole` query to backend to support admin user listing (optional, if feasible)
-2. Add `/admin` and `/admin/dashboard` routes in App.tsx
-3. Create `AdminPage.tsx` -- login + self-assign admin role + assign role to another principal
-4. Create `AdminDashboard.tsx` -- admin overview with role management and quick navigation
-5. Update Navbar to include Admin Dashboard link for admin users
-6. Update OnboardingPage to redirect admins to `/admin/dashboard`
-7. Update QuestionBank to always show Seed button for admins (not only when count = 0)
-8. Ensure `useAssignUserRole` mutation hook exists in useQueries.ts
+2. Update `App.tsx`: Add admissionsRoute at `/admissions`
+
+3. Update `Navbar.tsx`:
+   - Add "Admissions" NavLink visible to all users (authenticated or not)
+   - Add "Admin Portal" link visible when NOT admin (subtle, secondary styling)
+   - Move dropdown to include "Admissions" for candidate users
+
+4. Update `LandingPage.tsx`:
+   - Add "Candidate Portal" primary CTA button linking to `/admissions`
+   - Add subtle "Admin Portal →" text link in hero section

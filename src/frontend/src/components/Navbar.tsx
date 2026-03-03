@@ -12,6 +12,7 @@ import {
   BookOpen,
   BrainCircuit,
   ChevronDown,
+  GraduationCap,
   LayoutDashboard,
   Lightbulb,
   Loader2,
@@ -50,6 +51,14 @@ export function Navbar() {
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-1">
+          {/* Admissions link visible to everyone */}
+          <NavLink
+            to="/admissions"
+            label="Admissions"
+            icon={<GraduationCap size={15} />}
+            active={location.pathname === "/admissions"}
+            ocid="nav.admissions_link"
+          />
           {isAuthenticated && !isAdmin && (
             <>
               <NavLink
@@ -73,7 +82,27 @@ export function Navbar() {
                 active={location.pathname === "/interview-answers"}
                 ocid="nav.answers_link"
               />
+              {/* Admin Portal link for non-admin users */}
+              <NavLink
+                to="/admin"
+                label="Admin Portal"
+                icon={<Shield size={15} />}
+                active={location.pathname.startsWith("/admin")}
+                ocid="nav.admin_link"
+                secondary
+              />
             </>
+          )}
+          {!isAuthenticated && (
+            /* Admin Portal link for unauthenticated users */
+            <NavLink
+              to="/admin"
+              label="Admin Portal"
+              icon={<Shield size={15} />}
+              active={location.pathname.startsWith("/admin")}
+              ocid="nav.admin_link"
+              secondary
+            />
           )}
           {isAuthenticated && isAdmin && (
             <>
@@ -138,9 +167,15 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-48"
+                className="w-52"
                 data-ocid="nav.dropdown_menu"
               >
+                <DropdownMenuItem asChild>
+                  <Link to="/admissions" data-ocid="nav.admissions_link">
+                    <GraduationCap size={14} className="mr-2" />
+                    Admissions Portal
+                  </Link>
+                </DropdownMenuItem>
                 {!isAdmin && (
                   <>
                     <DropdownMenuItem asChild>
@@ -156,6 +191,12 @@ export function Navbar() {
                       >
                         <Lightbulb size={14} className="mr-2" />
                         Answer Guide
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" data-ocid="nav.admin_link">
+                        <Shield size={14} className="mr-2" />
+                        Admin Portal
                       </Link>
                     </DropdownMenuItem>
                   </>
@@ -229,12 +270,14 @@ function NavLink({
   icon,
   active,
   ocid,
+  secondary,
 }: {
   to: string;
   label: string;
   icon: React.ReactNode;
   active: boolean;
   ocid: string;
+  secondary?: boolean;
 }) {
   return (
     <Link
@@ -244,7 +287,9 @@ function NavLink({
         "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
         active
           ? "bg-primary/10 text-primary"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          : secondary
+            ? "text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent/50"
+            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
       )}
     >
       {icon}
