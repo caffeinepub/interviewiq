@@ -8,6 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,15 +22,22 @@ import {
   ArrowLeft,
   BrainCircuit,
   Calendar,
+  Camera,
   CheckCircle2,
+  ChevronDown,
   Clock,
   FileText,
   MessageSquare,
+  Monitor,
   RefreshCw,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
   Star,
   Timer,
   Trophy,
 } from "lucide-react";
+import { useState } from "react";
 import type { AnswerSubmission } from "../backend.d";
 import { ScoreGauge } from "../components/ScoreGauge";
 import { DifficultyBadge, StatusBadge } from "../components/StatusBadge";
@@ -34,6 +46,55 @@ import {
   useGetSession,
   useGetSessionAnswers,
 } from "../hooks/useQueries";
+
+// ─── Proctoring types ─────────────────────────────────────────────────────────
+
+interface ProctoringEvent {
+  type:
+    | "tab_switch"
+    | "window_blur"
+    | "camera_on"
+    | "camera_off"
+    | "screen_share_on"
+    | "screen_share_off";
+  timestamp: number;
+  message: string;
+}
+
+interface ProctoringSessionSummary {
+  cameraActive: boolean;
+  screenShareActive: boolean;
+  violations: number;
+  snapshots: string[];
+  events: ProctoringEvent[];
+  sessionId: string;
+}
+
+function formatEventTime(ts: number): string {
+  return new Date(ts).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function getEventIcon(type: ProctoringEvent["type"]) {
+  switch (type) {
+    case "tab_switch":
+    case "window_blur":
+      return <ShieldAlert size={12} className="text-warning shrink-0" />;
+    case "camera_on":
+      return <Camera size={12} className="text-success shrink-0" />;
+    case "camera_off":
+      return <Camera size={12} className="text-muted-foreground shrink-0" />;
+    case "screen_share_on":
+      return <Monitor size={12} className="text-success shrink-0" />;
+    case "screen_share_off":
+      return <Monitor size={12} className="text-muted-foreground shrink-0" />;
+    default:
+      return <Shield size={12} className="text-muted-foreground shrink-0" />;
+  }
+}
 
 function formatDate(nsTimestamp: bigint): string {
   const ms = Number(nsTimestamp) / 1_000_000;
@@ -115,6 +176,16 @@ function getScoreBarColor(score: number): string {
 export function AssessmentResults() {
   const { id } = useParams({ from: "/assessment/results/$id" });
   const sessionId = BigInt(id);
+  const [proctoringOpen, setProctoringOpen] = useState(false);
+
+  // Read proctoring summary from sessionStorage
+  let proctoring: ProctoringSessionSummary | null = null;
+  try {
+    const raw = sessionStorage.getItem(`proctoring_${id}`);
+    if (raw) proctoring = JSON.parse(raw) as ProctoringSessionSummary;
+  } catch (_e) {
+    proctoring = null;
+  }
 
   const { data: session, isLoading: loadingSession } = useGetSession(sessionId);
   const { data: allQuestions, isLoading: loadingQuestions } =
@@ -397,6 +468,141 @@ export function AssessmentResults() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Proctoring Report */}
+      {proctoring && (
+        <Card
+          className="border-border/60"
+          data-ocid="assessment-results.proctoring_card"
+        >
+          <CardHeader className="pb-3">
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <Shield size={16} className="text-primary" />
+              Proctoring Report
+            </CardTitle>
+            <CardDescription>
+              Monitoring summary for this session
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Status rows */}
+            <div className="space-y-3">
+              {/* Camera */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <Camera size={14} className="text-muted-foreground" />
+                  <span>Camera Monitoring</span>
+                </div>
+                {proctoring.cameraActive ? (
+                  <Badge className="bg-success/10 text-success border-success/30 gap-1 text-xs">
+                    <ShieldCheck size={10} />
+                    Active
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="border-muted text-muted-foreground gap-1 text-xs"
+                  >
+                    Inactive
+                  </Badge>
+                )}
+              </div>
+
+              {/* Screen share */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <Monitor size={14} className="text-muted-foreground" />
+                  <span>Screen Monitoring</span>
+                </div>
+                {proctoring.screenShareActive ? (
+                  <Badge className="bg-success/10 text-success border-success/30 gap-1 text-xs">
+                    <ShieldCheck size={10} />
+                    Active
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="border-muted text-muted-foreground gap-1 text-xs"
+                  >
+                    Inactive
+                  </Badge>
+                )}
+              </div>
+
+              {/* Violations */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <ShieldAlert size={14} className="text-muted-foreground" />
+                  <span>Violations Detected</span>
+                </div>
+                <Badge
+                  className={`gap-1 text-xs ${
+                    proctoring.violations === 0
+                      ? "bg-success/10 text-success border-success/30"
+                      : proctoring.violations <= 2
+                        ? "bg-warning/10 text-warning border-warning/30"
+                        : "bg-destructive/10 text-destructive border-destructive/30"
+                  }`}
+                >
+                  {proctoring.violations}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Snapshots note */}
+            {proctoring.snapshots.length > 0 && (
+              <div className="rounded-lg bg-muted/30 border border-border/40 px-3 py-2">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Camera size={11} />
+                  {proctoring.snapshots.length} periodic snapshot
+                  {proctoring.snapshots.length === 1 ? "" : "s"} captured during
+                  session
+                </p>
+              </div>
+            )}
+
+            {/* Event timeline */}
+            {proctoring.events.length > 0 && (
+              <Collapsible
+                open={proctoringOpen}
+                onOpenChange={setProctoringOpen}
+              >
+                <CollapsibleTrigger
+                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+                  data-ocid="assessment-results.proctoring_events_toggle"
+                >
+                  <ChevronDown
+                    size={13}
+                    className={`transition-transform ${proctoringOpen ? "rotate-180" : ""}`}
+                  />
+                  {proctoringOpen ? "Hide" : "Show"} event timeline (
+                  {Math.min(proctoring.events.length, 10)} events)
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-3 space-y-2">
+                    {proctoring.events.slice(0, 10).map((event, idx) => (
+                      <div
+                        // biome-ignore lint/suspicious/noArrayIndexKey: events list is append-only; index is stable
+                        key={`event-${idx}`}
+                        className="flex items-start gap-2 text-xs"
+                        data-ocid={`assessment-results.proctoring_event.item.${idx + 1}`}
+                      >
+                        {getEventIcon(event.type)}
+                        <span className="text-muted-foreground font-mono shrink-0">
+                          {formatEventTime(event.timestamp)}
+                        </span>
+                        <span className="text-foreground/80">
+                          {event.message}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </CardContent>
         </Card>
       )}

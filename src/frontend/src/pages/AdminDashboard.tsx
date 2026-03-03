@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
@@ -37,19 +38,49 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UserRole } from "../backend.d";
+import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAddQuestion,
   useAssignUserRole,
   useGetAllQuestions,
-  useIsCallerAdmin,
 } from "../hooks/useQueries";
 import { SEED_QUESTIONS } from "./QuestionBank";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { data: isAdmin, isLoading: checkingAdmin } = useIsCallerAdmin();
+  const { actor, isFetching: actorFetching } = useActor();
+
+  // Registration-first pattern: register user before checking admin status
+  const [registered, setRegistered] = useState(false);
+
+  useEffect(() => {
+    if (!actor || registered) return;
+    void (async () => {
+      try {
+        await actor.selfRegisterAsUser();
+      } catch {
+        // already registered — proceed
+      }
+      setRegistered(true);
+    })();
+  }, [actor, registered]);
+
+  // Only check admin status after registration completes
+  const { data: isAdmin, isLoading: checkingAdmin } = useQuery<boolean>({
+    queryKey: ["isAdmin"],
+    queryFn: async () => {
+      if (!actor) return false;
+      try {
+        return await actor.isCallerAdmin();
+      } catch {
+        return false;
+      }
+    },
+    enabled: !!actor && !actorFetching && registered,
+  });
+
   const { data: questions, isLoading: questionsLoading } = useGetAllQuestions();
   const assignRole = useAssignUserRole();
 

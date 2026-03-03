@@ -1,29 +1,25 @@
 # InterviewIQ
 
 ## Current State
+Full-stack interview platform with backend (Motoko on ICP) and React frontend. Features include role-based access (admin/user/guest), question bank, timed interview sessions, assessment with auto-scoring, camera proctoring, tab-switch anti-cheat, and evaluator scoring. Admin access is claimed via a one-click "Become Admin" button on `/admin`.
 
-A full-stack decentralized interview platform on ICP. The backend has a critical bug: `access-control.mo`'s `getUserRole` traps with "User is not registered" for any unregistered principal. This causes `hasPermission`, `isAdmin`, and `isCallerAdmin` to all crash for new users — breaking `selfRegisterAsUser`, `claimFirstAdmin`, and `createMockInterview` (the assessment session creation entry point).
-
-The frontend AssessmentPage calls `selfRegisterAsUser` then `createMockInterview` to start a session. The InterviewSession page fetches the session and displays the timed test.
+**Critical bug:** `access-control.mo` `getUserRole()` calls `Runtime.trap("User is not registered")` when a user is not in the roles map. This means `isCallerAdmin()`, `isAdmin()`, and `hasPermission()` all crash for any first-time user — including when they try to call `claimFirstAdmin()`. The "Fail to claim admin role" error seen by the user is caused by this trap propagating up through `isCallerAdmin` which is called before the admin check.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Nothing new
+- Nothing new — this is a targeted bug fix.
 
 ### Modify
-- **`access-control.mo`**: `getUserRole` must return `#guest` (not trap) for unregistered users
-- **`main.mo`**: `selfRegisterAsUser` must work without any prior role check — directly insert `#user` if not present. `claimFirstAdmin` must not call any function that checks roles first. `createMockInterview` uses `autoRegisterUserIfNeeded` which already directly writes to the map — keep this pattern. `getCallerUserProfile` and `getUserProfile` must use a safe role check (not trap for unregistered). `createCandidateProfile` and `getCandidateProfile` must use safe checks.
-- All functions that gate on `hasPermission(..., #user)` must now work correctly since `getUserRole` no longer traps — this is the only change needed in access-control.mo
+- `access-control.mo`: `getUserRole()` must return `#guest` (not trap) for unregistered users. This makes all role-check functions safe to call for any authenticated principal.
+- `main.mo`: `claimFirstAdmin()` logic remains the same but will now work correctly since `getUserRole` no longer traps.
+- `MixinAuthorization.mo`: `getCallerUserRole()` now safely returns `#guest` for new users instead of trapping.
 
 ### Remove
-- Nothing
+- Nothing removed.
 
 ## Implementation Plan
-
-1. Regenerate backend with the `getUserRole` fix: return `#guest` for null/unregistered principals instead of trapping
-2. Ensure `selfRegisterAsUser` directly checks the map (no role check before writing)
-3. Ensure `claimFirstAdmin` directly checks `adminAssigned` flag then writes — no getUserRole call before
-4. `createMockInterview` continues using `autoRegisterUserIfNeeded` pattern (direct map write)
-5. All other query/permission checks now work safely because getUserRole returns #guest (not admin) for unknown users, so hasPermission returns false gracefully instead of trapping
-6. Frontend: no changes needed — the existing flow (selfRegister then createMockInterview) will work once the backend trap is fixed
+1. Regenerate backend with `getUserRole` returning `#guest` for null/unregistered users (no trap).
+2. Verify all dependent functions (`isAdmin`, `hasPermission`, `isCallerAdmin`) work safely for unregistered users.
+3. Keep frontend `AdminPage.tsx` flow as-is (selfRegister → claimFirstAdmin → redirect) since it's correct.
+4. Deploy.

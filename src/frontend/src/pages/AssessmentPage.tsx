@@ -74,7 +74,7 @@ const assessmentRules = [
     icon: Camera,
     title: "Camera Proctoring",
     description:
-      "Optionally enable your webcam before starting for a proctored session. Camera permission can be granted or denied — you can still take the test without it.",
+      "Optionally enable your webcam or share your screen before starting for a fully proctored session. Camera and screen share monitoring are both available — you can still take the test without them.",
     color: "text-primary",
     bg: "bg-primary/10",
   },
@@ -82,7 +82,7 @@ const assessmentRules = [
     icon: ShieldCheck,
     title: "Anti-Cheat Monitoring",
     description:
-      "Tab switches and window focus changes are tracked automatically. Three or more violations flag your session for review. Stay focused!",
+      "Screen sharing and camera monitoring are available. Tab switches and window focus changes are tracked automatically. 5 or more violations will auto-submit your session.",
     color: "text-destructive",
     bg: "bg-destructive/10",
   },

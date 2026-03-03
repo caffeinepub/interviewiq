@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CheckCircle2,
@@ -21,11 +22,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import {
-  useClaimFirstAdmin,
-  useIsCallerAdmin,
-  useSelfRegisterAsUser,
-} from "../hooks/useQueries";
+import { useClaimFirstAdmin } from "../hooks/useQueries";
 
 export function AdminPage() {
   const navigate = useNavigate();
@@ -33,17 +30,47 @@ export function AdminPage() {
     useInternetIdentity();
   const isAuthenticated = !!identity;
 
+  const { actor, isFetching: actorFetching } = useActor();
+  const claimAdmin = useClaimFirstAdmin();
+
+  // Track whether selfRegisterAsUser has completed (success or already registered)
+  const [registered, setRegistered] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+
+  // Step 1: As soon as actor is ready + authenticated, register the user first.
+  // Only after this completes do we check admin status.
+  useEffect(() => {
+    if (!isAuthenticated || !actor || registered) return;
+
+    void (async () => {
+      try {
+        await actor.selfRegisterAsUser();
+      } catch {
+        // already registered — that's fine, proceed
+      }
+      setRegistered(true);
+    })();
+  }, [isAuthenticated, actor, registered]);
+
+  // Step 2: Check admin status ONLY after registration is confirmed.
+  // This prevents isCallerAdmin() from trapping on unregistered users.
   const {
     data: isAdmin,
     isLoading: checkingAdmin,
     refetch: refetchAdmin,
-  } = useIsCallerAdmin();
-  const claimAdmin = useClaimFirstAdmin();
-  const selfRegister = useSelfRegisterAsUser();
-  const { actor } = useActor();
-
-  const [copied, setCopied] = useState(false);
-  const [claiming, setClaiming] = useState(false);
+  } = useQuery<boolean>({
+    queryKey: ["isAdmin"],
+    queryFn: async () => {
+      if (!actor) return false;
+      try {
+        return await actor.isCallerAdmin();
+      } catch {
+        return false;
+      }
+    },
+    enabled: !!actor && !actorFetching && registered,
+  });
 
   // If already admin, redirect to dashboard immediately
   useEffect(() => {
@@ -52,19 +79,13 @@ export function AdminPage() {
     }
   }, [isAdmin, navigate]);
 
-  // Auto-register as user in the background when authenticated
-  const selfRegisterMutate = selfRegister.mutate;
-  useEffect(() => {
-    if (isAuthenticated && actor) {
-      selfRegisterMutate(undefined, {
-        onError: () => {
-          // Silently ignore — user may already be registered
-        },
-      });
-    }
-  }, [isAuthenticated, actor, selfRegisterMutate]);
+  // Show loading while: initializing auth, actor fetching, or waiting for registration + admin check
+  const isLoading =
+    isInitializing ||
+    actorFetching ||
+    (isAuthenticated && !registered) ||
+    (registered && checkingAdmin);
 
-  const isLoading = isInitializing || checkingAdmin;
   const principalFull = identity ? identity.getPrincipal().toString() : "";
 
   const handleCopyPrincipal = () => {
@@ -78,15 +99,11 @@ export function AdminPage() {
   const handleClaimAdmin = async () => {
     setClaiming(true);
     try {
-      // Step 1: ensure registered first (await this explicitly)
-      try {
-        await selfRegister.mutateAsync(undefined);
-      } catch {
-        // already registered — ignore
-      }
-      // Step 2: claim admin
+      // Registration already completed at mount — just claim admin directly
       await claimAdmin.mutateAsync();
       toast.success("Admin role activated! Redirecting to dashboard...");
+      // Wait a moment for canister state to settle, then refetch and navigate
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       await refetchAdmin();
       void navigate({ to: "/admin/dashboard" });
     } catch (err) {
