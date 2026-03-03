@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  AnswerSubmission,
   CandidateProfile,
   Difficulty,
   InterviewSession,
@@ -338,6 +339,18 @@ export function useDeleteQuestion() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["questions"] });
     },
+  });
+}
+
+export function useGetSessionAnswers(sessionId: bigint | null) {
+  const { actor, isFetching } = useActor();
+  return useQuery<AnswerSubmission[]>({
+    queryKey: ["sessionAnswers", sessionId?.toString()],
+    queryFn: async () => {
+      if (!actor || sessionId === null) return [];
+      return actor.getSessionAnswers(sessionId);
+    },
+    enabled: !!actor && !isFetching && sessionId !== null,
   });
 }
 

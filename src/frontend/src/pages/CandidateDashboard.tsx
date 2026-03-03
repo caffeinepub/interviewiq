@@ -13,6 +13,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
   ArrowRight,
+  Brain,
   BrainCircuit,
   ChevronRight,
   Clock,
@@ -20,6 +21,7 @@ import {
   Target,
   TrendingUp,
   Trophy,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { InterviewStatus } from "../backend.d";
@@ -30,36 +32,16 @@ import {
   useGetCandidateProfile,
 } from "../hooks/useQueries";
 
-// Demo session data for display (since we don't have a getAllSessions query)
-const demoSessions = [
-  {
-    id: BigInt(1),
-    status: InterviewStatus.completed,
-    score: 85,
-    role: "Frontend Developer",
-    date: "Feb 28, 2026",
-    questions: 5,
-    timeLimit: 45,
-  },
-  {
-    id: BigInt(2),
-    status: InterviewStatus.inProgress,
-    score: null,
-    role: "Full Stack Developer",
-    date: "Mar 1, 2026",
-    questions: 6,
-    timeLimit: 60,
-  },
-  {
-    id: BigInt(3),
-    status: InterviewStatus.evaluated,
-    score: 92,
-    role: "Software Engineer",
-    date: "Mar 2, 2026",
-    questions: 4,
-    timeLimit: 30,
-  },
-];
+// No demo sessions — candidates start fresh and build their own history
+const demoSessions: {
+  id: bigint;
+  status: InterviewStatus;
+  score: number | null;
+  role: string;
+  date: string;
+  questions: number;
+  timeLimit: number;
+}[] = [];
 
 export function CandidateDashboard() {
   const { identity } = useInternetIdentity();
@@ -139,16 +121,29 @@ export function CandidateDashboard() {
             </>
           )}
         </div>
-        <Button
-          asChild
-          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
-          data-ocid="candidate.mock_interview_button"
-        >
-          <Link to="/mock-interview/new">
-            <PlayCircle size={16} />
-            Start Mock Interview
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            asChild
+            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+            data-ocid="candidate.assessment_button"
+          >
+            <Link to="/assessment">
+              <Zap size={16} />
+              Take Assessment
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="gap-2 border-border/60"
+            data-ocid="candidate.mock_interview_button"
+          >
+            <Link to="/mock-interview/new">
+              <PlayCircle size={16} />
+              Mock Interview
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -246,16 +241,35 @@ export function CandidateDashboard() {
               className="flex flex-col items-center justify-center py-12 text-center"
               data-ocid="candidate.sessions_empty_state"
             >
-              <BrainCircuit className="h-10 w-10 text-muted-foreground mb-4" />
+              <Brain className="h-10 w-10 text-muted-foreground mb-4" />
               <p className="text-muted-foreground font-medium">
                 No sessions yet
               </p>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Start a mock interview to practice and build confidence.
+              <p className="text-sm text-muted-foreground mt-1 mb-6">
+                Take an auto-generated assessment or start a custom mock
+                interview to track your progress.
               </p>
-              <Button asChild size="sm">
-                <Link to="/mock-interview/new">Start Mock Interview</Link>
-              </Button>
+              <div className="flex gap-2 flex-wrap justify-center">
+                <Button
+                  asChild
+                  size="sm"
+                  data-ocid="candidate.sessions_assessment_button"
+                >
+                  <Link to="/assessment">
+                    <Zap size={14} className="mr-1.5" />
+                    Take Assessment
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-border/60"
+                  data-ocid="candidate.sessions_mock_button"
+                >
+                  <Link to="/mock-interview/new">Mock Interview</Link>
+                </Button>
+              </div>
             </div>
           ) : (
             <div
@@ -312,7 +326,32 @@ export function CandidateDashboard() {
       </Card>
 
       {/* Quick Links */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card
+          className="border-border/60 hover:border-primary/30 transition-colors group cursor-pointer border-primary/20 bg-primary/5"
+          data-ocid="candidate.assessment_card"
+        >
+          <CardContent className="p-6">
+            <Link to="/assessment" className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Brain size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-sm">
+                  Take Assessment
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Auto-generated · 5 questions · 30 min
+                </p>
+              </div>
+              <ArrowRight
+                size={16}
+                className="text-muted-foreground group-hover:text-primary transition-colors"
+              />
+            </Link>
+          </CardContent>
+        </Card>
+
         <Card className="border-border/60 hover:border-primary/30 transition-colors group cursor-pointer">
           <CardContent className="p-6">
             <Link to="/mock-interview/new" className="flex items-center gap-4">
@@ -321,7 +360,7 @@ export function CandidateDashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-display font-semibold text-sm">
-                  Practice Mock Interview
+                  Mock Interview
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Select questions and set your own pace

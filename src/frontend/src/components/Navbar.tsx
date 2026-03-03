@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   BookOpen,
+  Brain,
   BrainCircuit,
   ChevronDown,
   GraduationCap,
@@ -67,6 +68,13 @@ export function Navbar() {
                 icon={<LayoutDashboard size={15} />}
                 active={location.pathname === "/candidate"}
                 ocid="nav.dashboard_link"
+              />
+              <NavLink
+                to="/assessment"
+                label="Assessment"
+                icon={<Brain size={15} />}
+                active={location.pathname.startsWith("/assessment")}
+                ocid="nav.assessment_link"
               />
               <NavLink
                 to="/mock-interview/new"
@@ -182,6 +190,12 @@ export function Navbar() {
                       <Link to="/candidate" data-ocid="nav.dashboard_link">
                         <LayoutDashboard size={14} className="mr-2" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/assessment" data-ocid="nav.assessment_link">
+                        <Brain size={14} className="mr-2" />
+                        Assessment
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

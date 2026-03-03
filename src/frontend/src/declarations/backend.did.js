@@ -54,6 +54,13 @@ export const InterviewSession = IDL.Record({
   'candidate' : IDL.Principal,
   'flagged' : IDL.Bool,
 });
+export const AnswerSubmission = IDL.Record({
+  'feedback' : IDL.Opt(IDL.Text),
+  'score' : IDL.Opt(IDL.Nat),
+  'timeTakenSeconds' : IDL.Nat,
+  'questionId' : IDL.Nat,
+  'answerText' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -86,6 +93,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getSession' : IDL.Func([IDL.Nat], [IDL.Opt(InterviewSession)], ['query']),
+  'getSessionAnswers' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(AnswerSubmission)],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -154,6 +166,13 @@ export const idlFactory = ({ IDL }) => {
     'candidate' : IDL.Principal,
     'flagged' : IDL.Bool,
   });
+  const AnswerSubmission = IDL.Record({
+    'feedback' : IDL.Opt(IDL.Text),
+    'score' : IDL.Opt(IDL.Nat),
+    'timeTakenSeconds' : IDL.Nat,
+    'questionId' : IDL.Nat,
+    'answerText' : IDL.Text,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -190,6 +209,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getSession' : IDL.Func([IDL.Nat], [IDL.Opt(InterviewSession)], ['query']),
+    'getSessionAnswers' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(AnswerSubmission)],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],

@@ -49,9 +49,9 @@ const testSteps = [
   {
     step: "02",
     icon: BookOpen,
-    title: "Select Questions",
+    title: "Go to Assessment Center",
     description:
-      "Browse the question bank, filter by category and difficulty, then choose 3–6 questions that match your target role.",
+      "Visit the Assessment Center at /assessment. Questions are auto-selected for you — no manual picking needed.",
     color: "text-info",
     bg: "bg-info/10",
   },
@@ -60,7 +60,7 @@ const testSteps = [
     icon: Clock,
     title: "Start the Timed Test",
     description:
-      "The timer starts when you begin. Answer each question carefully in text or code mode and submit each one.",
+      "The timer starts when you begin. 5 questions, 30 minutes. Answer carefully in text or code mode and submit.",
     color: "text-warning",
     bg: "bg-warning/10",
   },
@@ -194,11 +194,11 @@ export function AdmissionsPortal() {
                   asChild
                 >
                   <Link
-                    to="/mock-interview/new"
+                    to="/assessment"
                     data-ocid="admissions.start_test_button"
                   >
                     <PlayCircle className="h-4 w-4" />
-                    Start New Test
+                    Start Assessment
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -517,12 +517,10 @@ export function AdmissionsPortal() {
                     asChild
                     data-ocid="admissions.ready_button"
                   >
-                    <Link
-                      to={hasProfile ? "/mock-interview/new" : "/onboarding"}
-                    >
+                    <Link to={hasProfile ? "/assessment" : "/onboarding"}>
                       <PlayCircle className="h-4 w-4" />
                       {hasProfile
-                        ? "I'm Ready — Start Test"
+                        ? "I'm Ready — Start Assessment"
                         : "Complete Profile First"}
                     </Link>
                   </Button>

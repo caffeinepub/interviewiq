@@ -10,6 +10,13 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AnswerSubmission {
+  'feedback' : [] | [string],
+  'score' : [] | [bigint],
+  'timeTakenSeconds' : bigint,
+  'questionId' : bigint,
+  'answerText' : string,
+}
 export interface CandidateProfile {
   'experienceLevel' : string,
   'name' : string,
@@ -74,6 +81,7 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCandidateProfile' : ActorMethod<[Principal], [] | [CandidateProfile]>,
   'getSession' : ActorMethod<[bigint], [] | [InterviewSession]>,
+  'getSessionAnswers' : ActorMethod<[bigint], Array<AnswerSubmission>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

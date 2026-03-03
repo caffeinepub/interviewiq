@@ -90,6 +90,13 @@ export class ExternalBlob {
     }
 }
 export type Time = bigint;
+export interface AnswerSubmission {
+    feedback?: string;
+    score?: bigint;
+    timeTakenSeconds: bigint;
+    questionId: bigint;
+    answerText: string;
+}
 export interface InterviewSession {
     id: bigint;
     startTime?: Time;
@@ -152,6 +159,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getCandidateProfile(candidate: Principal): Promise<CandidateProfile | null>;
     getSession(sessionId: bigint): Promise<InterviewSession | null>;
+    getSessionAnswers(sessionId: bigint): Promise<Array<AnswerSubmission>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
@@ -162,7 +170,7 @@ export interface backendInterface {
     submitSession(sessionId: bigint): Promise<void>;
     updateQuestion(id: bigint, title: string, description: string, category: string, difficulty: Difficulty, tags: Array<string>): Promise<void>;
 }
-import type { CandidateProfile as _CandidateProfile, Difficulty as _Difficulty, InterviewSession as _InterviewSession, InterviewStatus as _InterviewStatus, Question as _Question, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { AnswerSubmission as _AnswerSubmission, CandidateProfile as _CandidateProfile, Difficulty as _Difficulty, InterviewSession as _InterviewSession, InterviewStatus as _InterviewStatus, Question as _Question, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -361,6 +369,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getSessionAnswers(arg0: bigint): Promise<Array<AnswerSubmission>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getSessionAnswers(arg0);
+                return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getSessionAnswers(arg0);
+            return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
@@ -488,6 +510,9 @@ export class Backend implements backendInterface {
         }
     }
 }
+function from_candid_AnswerSubmission_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AnswerSubmission): AnswerSubmission {
+    return from_candid_record_n24(_uploadFile, _downloadFile, value);
+}
 function from_candid_Difficulty_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Difficulty): Difficulty {
     return from_candid_variant_n9(_uploadFile, _downloadFile, value);
 }
@@ -563,6 +588,27 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
         flagged: value.flagged
     };
 }
+function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    feedback: [] | [string];
+    score: [] | [bigint];
+    timeTakenSeconds: bigint;
+    questionId: bigint;
+    answerText: string;
+}): {
+    feedback?: string;
+    score?: bigint;
+    timeTakenSeconds: bigint;
+    questionId: bigint;
+    answerText: string;
+} {
+    return {
+        feedback: record_opt_to_undefined(from_candid_opt_n21(_uploadFile, _downloadFile, value.feedback)),
+        score: record_opt_to_undefined(from_candid_opt_n20(_uploadFile, _downloadFile, value.score)),
+        timeTakenSeconds: value.timeTakenSeconds,
+        questionId: value.questionId,
+        answerText: value.answerText
+    };
+}
 function from_candid_record_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     title: string;
@@ -615,6 +661,9 @@ function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uin
     medium: null;
 }): Difficulty {
     return "easy" in value ? Difficulty.easy : "hard" in value ? Difficulty.hard : "medium" in value ? Difficulty.medium : value;
+}
+function from_candid_vec_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AnswerSubmission>): Array<AnswerSubmission> {
+    return value.map((x)=>from_candid_AnswerSubmission_n23(_uploadFile, _downloadFile, x));
 }
 function from_candid_vec_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Question>): Array<Question> {
     return value.map((x)=>from_candid_Question_n6(_uploadFile, _downloadFile, x));

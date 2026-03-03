@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -56,6 +56,7 @@ function formatTime(seconds: number): string {
 export function InterviewSession() {
   const { id } = useParams({ from: "/session/$id" });
   const sessionId = BigInt(id);
+  const navigate = useNavigate();
 
   const { data: session, isLoading: loadingSession } = useGetSession(sessionId);
   const { data: allQuestions, isLoading: loadingQuestions } =
@@ -174,12 +175,13 @@ export function InterviewSession() {
   const handleSubmitSession = useCallback(async () => {
     try {
       await submitSession.mutateAsync(sessionId);
-      toast.success("Interview submitted! Awaiting evaluation.");
+      toast.success("Assessment submitted! Viewing your results...");
+      void navigate({ to: "/assessment/results/$id", params: { id } });
     } catch (err) {
       toast.error("Failed to submit interview.");
       console.error(err);
     }
-  }, [sessionId, submitSession]);
+  }, [sessionId, submitSession, navigate, id]);
 
   const isLoading = loadingSession || loadingQuestions;
 
@@ -253,8 +255,8 @@ export function InterviewSession() {
                 asChild
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                <Link to="/session/$id/report" params={{ id }}>
-                  View Full Report
+                <Link to="/assessment/results/$id" params={{ id }}>
+                  View Results
                 </Link>
               </Button>
               <Button variant="outline" asChild>

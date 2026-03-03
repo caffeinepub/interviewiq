@@ -11,9 +11,17 @@ import Nat "mo:core/Nat";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  type UserRole = {
+    #admin;
+    #user;
+    #guest;
+  };
 
   type Difficulty = {
     #easy;
@@ -297,26 +305,103 @@ actor {
       Runtime.trap("Unauthorized: Only the assigned candidate can submit this session");
     };
 
+    // Auto-score each answer submission
+    let scoredSubmissions = sessionData.submissions.map(
+      func(submission : AnswerSubmission) : AnswerSubmission {
+        let answerLength = submission.answerText.size();
+        let (score, feedback) = if (answerLength == 0) {
+          (0, "No answer provided.")
+        } else if (answerLength <= 49) {
+          (20, "Brief answer — try to elaborate more.")
+        } else if (answerLength <= 149) {
+          (50, "Adequate answer — could be more detailed.")
+        } else if (answerLength <= 299) {
+          (70, "Good answer — well explained.")
+        } else { (90, "Excellent answer — comprehensive and detailed.") };
+
+        {
+          questionId = submission.questionId;
+          answerText = submission.answerText;
+          timeTakenSeconds = submission.timeTakenSeconds;
+          score = ?score;
+          feedback = ?feedback;
+        };
+      }
+    );
+
+    // Calculate overall average score
+    let totalScore = scoredSubmissions.foldLeft(
+      0,
+      func(acc, submission) {
+        switch (submission.score) {
+          case (null) { acc };
+          case (?s) { acc + s };
+        };
+      },
+    );
+
+    let numSubmissions = scoredSubmissions.foldLeft(
+      0,
+      func(acc, submission) {
+        if (submission.answerText != "") { acc + 1 } else { acc };
+      },
+    );
+
+    let overallScore = if (numSubmissions > 0) { totalScore / numSubmissions } else {
+      0;
+    };
+
+    // Set auto-feedback based on overall score
+    let autoFeedback = if (overallScore >= 80) {
+      "Outstanding performance! Your answers were thorough and well-articulated.";
+    } else if (overallScore >= 60) {
+      "Good effort! Your answers showed solid understanding. Keep refining your explanations.";
+    } else if (overallScore >= 40) {
+      "Decent attempt. Focus on providing more detailed and structured answers.";
+    } else {
+      "Keep practicing! Try to elaborate your answers with examples and clear reasoning.";
+    };
+
+    // Update session status to #evaluated (not #completed)
     let updatedSession : InterviewSession = {
       id = sessionData.session.id;
       candidate = sessionData.session.candidate;
       evaluator = sessionData.session.evaluator;
       questionIds = sessionData.session.questionIds;
       timeLimitMinutes = sessionData.session.timeLimitMinutes;
-      status = #completed;
+      status = #evaluated; // Set status to #evaluated
       startTime = sessionData.session.startTime;
       endTime = ?Time.now();
-      overallScore = sessionData.session.overallScore;
-      feedback = sessionData.session.feedback;
+      overallScore = ?overallScore;
+      feedback = ?autoFeedback;
       flagged = sessionData.session.flagged;
       flagNote = sessionData.session.flagNote;
     };
 
     let updatedData : SessionData = {
       session = updatedSession;
-      submissions = sessionData.submissions;
+      submissions = scoredSubmissions;
     };
+
     interviewSessions.add(sessionId, updatedData);
+  };
+
+  // Get session answers (scored) - new function
+  public query ({ caller }) func getSessionAnswers(sessionId : Nat) : async [AnswerSubmission] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view session answers");
+    };
+
+    switch (interviewSessions.get(sessionId)) {
+      case (null) { [] };
+      case (?data) {
+        // Candidates can view their own sessions, admins can view all
+        if (caller != data.session.candidate and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only view your own session answers");
+        };
+        data.submissions;
+      };
+    };
   };
 
   // Answer Submission

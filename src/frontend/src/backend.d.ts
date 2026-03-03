@@ -8,6 +8,13 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export type Time = bigint;
+export interface AnswerSubmission {
+    feedback?: string;
+    score?: bigint;
+    timeTakenSeconds: bigint;
+    questionId: bigint;
+    answerText: string;
+}
 export interface InterviewSession {
     id: bigint;
     startTime?: Time;
@@ -69,6 +76,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getCandidateProfile(candidate: Principal): Promise<CandidateProfile | null>;
     getSession(sessionId: bigint): Promise<InterviewSession | null>;
+    getSessionAnswers(sessionId: bigint): Promise<Array<AnswerSubmission>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

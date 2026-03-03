@@ -23,6 +23,7 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  Copy,
   Database,
   Lightbulb,
   Loader2,
@@ -58,9 +59,15 @@ export function AdminDashboard() {
     }
   }, [isAdmin, checkingAdmin, navigate]);
 
-  const principalShort = identity
+  const principalFull = identity
     ? identity.getPrincipal().toString()
     : "Not connected";
+
+  const handleCopyPrincipal = () => {
+    if (!identity) return;
+    void navigator.clipboard.writeText(identity.getPrincipal().toString());
+    toast.success("Principal ID copied to clipboard!");
+  };
 
   const handleAssignRole = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,9 +147,19 @@ export function AdminDashboard() {
               Logged in as Admin
             </span>
             <Separator orientation="vertical" className="h-4" />
-            <span className="font-mono text-xs text-muted-foreground break-all">
-              {principalShort}
+            <span className="font-mono text-xs text-muted-foreground break-all flex-1">
+              {principalFull}
             </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 shrink-0"
+              onClick={handleCopyPrincipal}
+              title="Copy your Principal ID"
+              data-ocid="admin.copy_principal_button"
+            >
+              <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -240,13 +257,42 @@ export function AdminDashboard() {
           </div>
           <CardDescription>
             Assign roles to any user by their Principal ID. Admins can grant
-            admin or user roles.
+            admin or user roles. Ask the user to copy their Principal ID from
+            their profile or the Admin Panel info bar above.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAssignRole} className="space-y-5">
+            {/* Quick self-assign shortcut */}
+            {identity && (
+              <div className="rounded-lg bg-muted/40 border border-border/60 p-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium text-foreground">
+                    Your Principal ID
+                  </p>
+                  <p className="font-mono text-xs text-muted-foreground truncate max-w-xs">
+                    {principalFull}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5 text-xs"
+                  onClick={() => {
+                    setPrincipalId(principalFull);
+                    setFormError("");
+                  }}
+                  data-ocid="admin.use_own_principal_button"
+                >
+                  <UserCog className="h-3.5 w-3.5" />
+                  Use Mine
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="principalId">Principal ID</Label>
+              <Label htmlFor="principalId">Target Principal ID</Label>
               <Input
                 id="principalId"
                 placeholder="e.g. rrkah-fqaaa-aaaaa-aaaaq-cai"
@@ -268,7 +314,8 @@ export function AdminDashboard() {
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Enter the full principal ID of the user you want to update
+                Enter the full Principal ID of the user you want to update, or
+                click "Use Mine" above to assign a role to yourself.
               </p>
             </div>
 

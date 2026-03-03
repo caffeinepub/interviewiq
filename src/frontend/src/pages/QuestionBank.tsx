@@ -71,213 +71,123 @@ interface SeedQuestion {
   tags: string[];
 }
 
+// Seed questions sourced from the Answer Guide — these are the 10 classic interview questions
+// with full descriptions, what-they-want-to-know context, and model answer strategies.
 const SEED_QUESTIONS: SeedQuestion[] = [
-  // Algorithms
-  {
-    title: "Two Sum",
-    description:
-      "Given an array of integers nums and an integer target, return indices of the two numbers that add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.",
-    category: "Algorithms",
-    difficulty: Difficulty.easy,
-    tags: ["arrays", "hash-map", "easy"],
-  },
-  {
-    title: "Merge Intervals",
-    description:
-      "Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals and return an array of the non-overlapping intervals that cover all the intervals in the input.",
-    category: "Algorithms",
-    difficulty: Difficulty.medium,
-    tags: ["arrays", "sorting", "intervals"],
-  },
-  {
-    title: "Longest Increasing Subsequence",
-    description:
-      "Given an integer array nums, return the length of the longest strictly increasing subsequence. A subsequence is a sequence that can be derived from an array by deleting some or no elements without changing the order of the remaining elements.",
-    category: "Algorithms",
-    difficulty: Difficulty.hard,
-    tags: ["dynamic-programming", "binary-search"],
-  },
-  // Data Structures
-  {
-    title: "Implement a Stack using Queues",
-    description:
-      "Implement a last-in-first-out (LIFO) stack using only two queues. The implemented stack should support all the functions of a normal stack (push, top, pop, and empty).",
-    category: "Data Structures",
-    difficulty: Difficulty.easy,
-    tags: ["stack", "queue", "design"],
-  },
-  {
-    title: "LRU Cache",
-    description:
-      "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache. Implement the LRUCache class with get and put operations, both running in O(1) average time complexity.",
-    category: "Data Structures",
-    difficulty: Difficulty.medium,
-    tags: ["hash-map", "doubly-linked-list", "design"],
-  },
-  {
-    title: "Serialize and Deserialize Binary Tree",
-    description:
-      "Design an algorithm to serialize and deserialize a binary tree. Serialization is the process of converting a data structure into a sequence of bits so that it can be stored in a file or memory buffer, and deserialized back into the original structure.",
-    category: "Data Structures",
-    difficulty: Difficulty.hard,
-    tags: ["binary-tree", "BFS", "DFS"],
-  },
-  // System Design
-  {
-    title: "Design a URL Shortener",
-    description:
-      "Design a system like bit.ly that converts long URLs into short ones and redirects users. Consider scalability, database schema, hashing strategy, and how to handle high read/write throughput.",
-    category: "System Design",
-    difficulty: Difficulty.medium,
-    tags: ["system-design", "scalability", "hashing"],
-  },
-  {
-    title: "Design Twitter Feed",
-    description:
-      "Design a simplified version of Twitter where users can post tweets and follow other users to see a news feed. Address fan-out strategies, caching layers, and how to handle celebrity accounts with millions of followers.",
-    category: "System Design",
-    difficulty: Difficulty.hard,
-    tags: ["system-design", "distributed", "caching"],
-  },
-  // Behavioral
   {
     title: "Tell Me About Yourself",
     description:
-      "Give a brief introduction of your professional background, key skills, and what you are looking for in your next role. Keep it concise, relevant, and tailored to the position you are applying for.",
-    category: "Behavioral",
-    difficulty: Difficulty.easy,
-    tags: ["behavioral", "introduction"],
-  },
-  {
-    title: "Describe a Challenging Project",
-    description:
-      "Tell me about a time you worked on a particularly challenging project. What was your role, what obstacles did you face, and how did you overcome them? Use the STAR method: Situation, Task, Action, Result.",
-    category: "Behavioral",
-    difficulty: Difficulty.medium,
-    tags: ["behavioral", "problem-solving", "STAR"],
-  },
-  {
-    title: "Conflict Resolution with a Team Member",
-    description:
-      "Describe a time when you had a conflict with a team member. How did you handle it and what was the outcome? Focus on your communication approach, empathy, and the steps you took to reach a resolution.",
-    category: "Behavioral",
-    difficulty: Difficulty.medium,
-    tags: ["behavioral", "teamwork", "communication"],
-  },
-  // Frontend
-  {
-    title: "Virtual DOM Explanation",
-    description:
-      "Explain what the Virtual DOM is in React, how it works under the hood, and why it improves performance compared to direct DOM manipulation. Discuss reconciliation and the diffing algorithm.",
-    category: "Frontend",
-    difficulty: Difficulty.medium,
-    tags: ["react", "virtual-dom", "performance"],
-  },
-  {
-    title: "Implement Infinite Scroll",
-    description:
-      "Implement an infinite scroll component in React that loads more items as the user scrolls to the bottom of the page using the Intersection Observer API. Handle loading states, errors, and cleanup properly.",
-    category: "Frontend",
-    difficulty: Difficulty.hard,
-    tags: ["react", "performance", "intersection-observer"],
-  },
-  // Backend
-  {
-    title: "Design a REST API for a Blog",
-    description:
-      "Design RESTful API endpoints for a blog platform supporting posts, comments, and user authentication. Include HTTP methods, routes, request/response formats, status codes, and pagination strategy.",
-    category: "Backend",
-    difficulty: Difficulty.medium,
-    tags: ["REST", "API-design", "HTTP"],
-  },
-  {
-    title: "Database Indexing Strategies",
-    description:
-      "Explain database indexing strategies, when to use composite indexes vs single-column indexes, and the trade-offs involved in over-indexing. Discuss B-tree vs hash indexes and query execution plan analysis.",
-    category: "Backend",
-    difficulty: Difficulty.hard,
-    tags: ["database", "indexing", "performance", "SQL"],
-  },
-  // Interview Questions
-  {
-    title: "Tell Me About Yourself",
-    description:
-      "Opening question used to set the tone and break the ice. They want a concise, professional pitch covering your present role, past relevant experience, and why you are excited about the future. Not a full life story — keep it under 2 minutes.",
+      "Opening question used to set the tone and break the ice. They want a concise, professional pitch covering your present role, past relevant experience, and why you are excited about the future.\n\nWhat they want to know: Not a full life story — keep it under 2 minutes. Structure: (1) Present role and key responsibilities; (2) 1-2 relevant past experiences; (3) Why you are excited about this opportunity.\n\nModel Answer Strategy: 'I am currently a [role] at [Company] where I [key responsibility]. Before that, I [relevant past experience]. I am now looking to [future goal relevant to this role].'",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "introduction", "pitch"],
+    tags: ["behavioral", "introduction", "pitch", "answer-guide"],
   },
   {
     title: "Why Do You Want to Work for This Company?",
     description:
-      "Tests your research and genuine interest in the organization. They want to see that you understand their mission, values, and product, and that you fit their culture. Show you want this specific job, not just any job.",
+      "Tests your research and genuine interest in the organization. They want to see you understand their mission, values, and product.\n\nWhat they want to know: They want to know you want THIS job, not just any job. Research their mission statement, recent news, products, and culture before the interview.\n\nModel Answer Strategy: (1) Mention something specific about the company that genuinely excites you; (2) Connect it to your own values or career goals; (3) Explain why this role is the right fit. Avoid generic answers like 'I heard it is a great place to work.'",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "research", "motivation"],
+    tags: ["behavioral", "research", "motivation", "answer-guide"],
   },
   {
     title: "What Are Your Strengths?",
     description:
-      "An opportunity to boast professionally, but it must be tailored to the job. They are looking for skills listed in the job description that you can prove you possess. Share 2-3 specific, relevant strengths with concrete examples.",
+      "An opportunity to boast professionally, but it must be tailored to the job. They are looking for skills listed in the job description.\n\nWhat they want to know: Share 2-3 specific, relevant strengths with concrete examples that prove you possess them.\n\nModel Answer Strategy: For each strength: (1) Name it clearly; (2) Back it with a specific example or achievement; (3) Connect it to the value it brings to the role. Example: 'One of my strengths is breaking down complex problems. In my last role, I reduced API response times by 40% by identifying redundant database calls.'",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "strengths", "self-awareness"],
+    tags: ["behavioral", "strengths", "self-awareness", "answer-guide"],
   },
   {
     title: "What Is Your Greatest Weakness?",
     description:
-      "Evaluates self-awareness and honesty. They want to know if you can identify areas for improvement and if you are proactively working on them. Avoid disguised strengths like 'I work too hard' — share a genuine, manageable weakness.",
+      "Evaluates self-awareness and honesty. They want to know if you can identify areas for improvement and are proactively working on them.\n\nWhat they want to know: Avoid disguised strengths like 'I work too hard.' Share a genuine, manageable weakness with a plan to improve.\n\nModel Answer Strategy: (1) State the weakness clearly; (2) Give context on how it has affected you; (3) Describe the steps you are actively taking to improve. Example: 'I sometimes struggle with delegating tasks. I have been working on this by setting clearer expectations with my team and scheduling regular check-ins.'",
     category: "Interview",
     difficulty: Difficulty.medium,
-    tags: ["behavioral", "weakness", "self-awareness", "growth"],
+    tags: [
+      "behavioral",
+      "weakness",
+      "self-awareness",
+      "growth",
+      "answer-guide",
+    ],
   },
   {
     title: "Why Should We Hire You?",
     description:
-      "A chance to sell yourself directly. All candidates are likely qualified — this is your opportunity to differentiate yourself by highlighting your unique skills, experience, and the specific value you will bring to the team.",
+      "A chance to sell yourself directly. All candidates are likely qualified — this is your opportunity to differentiate yourself.\n\nWhat they want to know: Highlight your unique skills, experience, and the specific value you will bring to the team.\n\nModel Answer Strategy: Cover three angles: (1) You can do the job — evidence from past experience; (2) You will deliver results — a specific example of impact; (3) You are a great fit — your values align with the company culture. Example: 'I have 5 years of experience solving exactly the problems in this job description. In my last role I reduced onboarding time by 30% by redesigning the user flow.'",
     category: "Interview",
     difficulty: Difficulty.medium,
-    tags: ["behavioral", "value-proposition", "differentiation"],
+    tags: [
+      "behavioral",
+      "value-proposition",
+      "differentiation",
+      "answer-guide",
+    ],
   },
   {
     title: "Tell Me About a Time You Faced a Challenge or Conflict at Work",
     description:
-      "A behavioral question to assess problem-solving and interpersonal skills. They are evaluating your emotional intelligence, ability to handle pressure, and conflict resolution style. Use the STAR method: Situation, Task, Action, Result.",
+      "A behavioral question to assess problem-solving and interpersonal skills using the STAR method.\n\nWhat they want to know: They are evaluating your emotional intelligence, ability to handle pressure, and conflict resolution style.\n\nModel Answer Strategy: Use STAR — (S) Situation: briefly describe the context; (T) Task: your responsibility; (A) Action: specific steps you took; (R) Result: the outcome. Focus on what YOU did. Choose a story showing growth, problem-solving, or leadership. Avoid blaming others.",
     category: "Interview",
     difficulty: Difficulty.medium,
-    tags: ["behavioral", "STAR", "conflict-resolution", "problem-solving"],
+    tags: [
+      "behavioral",
+      "STAR",
+      "conflict-resolution",
+      "problem-solving",
+      "answer-guide",
+    ],
   },
   {
     title: "Why Are You Leaving Your Current Job?",
     description:
-      "Evaluates your professionalism and motivations. They want to ensure you are not leaving due to a major, repetitive negative issue. Focus on seeking new opportunities, growth, or a better fit — never bad-mouth your previous employer.",
+      "Evaluates your professionalism and motivations for leaving your current employer.\n\nWhat they want to know: They want to ensure you are not leaving due to a major, repetitive negative issue. Never bad-mouth your previous employer.\n\nModel Answer Strategy: Keep it positive and forward-looking. Good reasons: seeking new challenges, wanting to grow in a specific direction, the role is not aligned with your long-term goals. Example: 'I have learned a lot in my current role, but I am now looking for a new challenge — specifically the opportunity to work on more complex distributed systems problems.'",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "professionalism", "motivation", "career"],
+    tags: [
+      "behavioral",
+      "professionalism",
+      "motivation",
+      "career",
+      "answer-guide",
+    ],
   },
   {
     title: "Where Do You See Yourself in Five Years?",
     description:
-      "Assesses your career goals and potential loyalty. They are looking for realistic career ambitions that align with the company's trajectory, checking if this role is a good stepping stone for you — indicating longevity.",
+      "Assesses your career goals and potential loyalty to the organization.\n\nWhat they want to know: They are looking for realistic career ambitions that align with the company's trajectory and indicate longevity.\n\nModel Answer Strategy: Be honest and specific, but align your answer with the company's direction. Avoid saying 'running my own company.' Structure: (1) Where you want to grow professionally; (2) How this role helps you get there; (3) What you hope to contribute to the company. Example: 'In five years I hope to be in a senior engineering role where I mentor junior developers.'",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "career-goals", "ambition", "loyalty"],
+    tags: ["behavioral", "career-goals", "ambition", "loyalty", "answer-guide"],
   },
   {
     title: "How Do You Prioritize Your Work?",
     description:
-      "Evaluates organizational skills and productivity. They want to know your methods for handling multiple tasks, deadlines, and stress. Include specific tools (calendars, task lists) and techniques to maintain high quality under pressure.",
+      "Evaluates organizational skills and productivity when handling multiple tasks and deadlines.\n\nWhat they want to know: They want your actual system, not just 'I make a list.' Include specific tools and techniques.\n\nModel Answer Strategy: Include: (1) How you assess urgency vs importance (e.g. Eisenhower matrix); (2) Tools you use (calendar blocking, Notion, Jira); (3) How you communicate when priorities shift. Example: 'I start each morning reviewing my task list and tagging items as urgent/important. I use time-blocking for deep work and check messages only at set times.'",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "organization", "productivity", "time-management"],
+    tags: [
+      "behavioral",
+      "organization",
+      "productivity",
+      "time-management",
+      "answer-guide",
+    ],
   },
   {
     title: "Do You Have Any Questions for Us?",
     description:
-      "The final opportunity to show engagement. Asking thoughtful questions about the team, culture, or future projects shows you are serious, curious, and prepared. Saying 'no' can make you look uninterested — always prepare 2-3 questions.",
+      "The final opportunity to show engagement and genuine interest in the role and company.\n\nWhat they want to know: Thoughtful questions show you are serious, curious, and prepared. Saying 'no' can make you look uninterested.\n\nModel Answer Strategy: Always prepare at least 3 questions. Categories: (1) Role — 'What does success look like in the first 90 days?'; (2) Team — 'How does the team handle disagreements on technical direction?'; (3) Growth — 'What have people in this role typically gone on to do?'; (4) Company — 'What is the biggest challenge the team faces right now?' Avoid asking about salary in the first interview.",
     category: "Interview",
     difficulty: Difficulty.easy,
-    tags: ["behavioral", "engagement", "curiosity", "preparation"],
+    tags: [
+      "behavioral",
+      "engagement",
+      "curiosity",
+      "preparation",
+      "answer-guide",
+    ],
   },
 ];
 
