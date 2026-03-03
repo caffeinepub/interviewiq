@@ -1,27 +1,29 @@
 # InterviewIQ
 
 ## Current State
-- Admin Portal (`/admin`) requires an admin activation token to become admin. The token comes from `CAFFEINE_ADMIN_TOKEN` env var injected by the platform, which users don't have direct access to.
-- The `_initializeAccessControlWithSecret` function is the only way to become admin — it requires the exact token string.
-- Admin Dashboard (`/admin/dashboard`) has role assignment form and seed questions button.
-- Backend has `assignCallerUserRole` which only admins can call.
+
+A full-stack decentralized interview platform on ICP. The backend has a critical bug: `access-control.mo`'s `getUserRole` traps with "User is not registered" for any unregistered principal. This causes `hasPermission`, `isAdmin`, and `isCallerAdmin` to all crash for new users — breaking `selfRegisterAsUser`, `claimFirstAdmin`, and `createMockInterview` (the assessment session creation entry point).
+
+The frontend AssessmentPage calls `selfRegisterAsUser` then `createMockInterview` to start a session. The InterviewSession page fetches the session and displays the timed test.
 
 ## Requested Changes (Diff)
 
 ### Add
-- A new backend function `claimFirstAdmin()` that allows the first authenticated (non-anonymous) caller to become admin with no token required — but only if no admin has been assigned yet (`adminAssigned == false`). This eliminates the need for a token for the very first admin.
-- A `getAdminAssigned()` query function so the frontend can check if admin has been claimed yet.
-- In Admin Portal (`/admin`): show a "Claim Admin (First Setup)" button when no admin has been assigned yet, allowing the signed-in user to become admin in one click.
-- Keep the existing token-based activation as a fallback for cases where the token IS available.
+- Nothing new
 
 ### Modify
-- Admin Portal UI: show a clear two-path flow: (1) "First Setup — Claim Admin" if `adminAssigned` is false, (2) "Token Activation" if admin already exists.
-- Admin Dashboard role assignment: make the "Use Mine" shortcut more prominent; ensure the role select includes admin, user, and guest options clearly.
+- **`access-control.mo`**: `getUserRole` must return `#guest` (not trap) for unregistered users
+- **`main.mo`**: `selfRegisterAsUser` must work without any prior role check — directly insert `#user` if not present. `claimFirstAdmin` must not call any function that checks roles first. `createMockInterview` uses `autoRegisterUserIfNeeded` which already directly writes to the map — keep this pattern. `getCallerUserProfile` and `getUserProfile` must use a safe role check (not trap for unregistered). `createCandidateProfile` and `getCandidateProfile` must use safe checks.
+- All functions that gate on `hasPermission(..., #user)` must now work correctly since `getUserRole` no longer traps — this is the only change needed in access-control.mo
 
 ### Remove
-- Nothing removed.
+- Nothing
 
 ## Implementation Plan
-1. Add `claimFirstAdmin()` and `getAdminAssigned()` functions to `main.mo` — `claimFirstAdmin` sets caller as admin only if `adminAssigned` is false.
-2. Update `AdminPage.tsx` to query `getAdminAssigned`, show "Claim Admin" button (no token needed) when first setup, and keep token input as secondary option.
-3. Update `AdminDashboard.tsx` role select to include guest role and improve "Use Mine" shortcut UX.
+
+1. Regenerate backend with the `getUserRole` fix: return `#guest` for null/unregistered principals instead of trapping
+2. Ensure `selfRegisterAsUser` directly checks the map (no role check before writing)
+3. Ensure `claimFirstAdmin` directly checks `adminAssigned` flag then writes — no getUserRole call before
+4. `createMockInterview` continues using `autoRegisterUserIfNeeded` pattern (direct map write)
+5. All other query/permission checks now work safely because getUserRole returns #guest (not admin) for unknown users, so hasPermission returns false gracefully instead of trapping
+6. Frontend: no changes needed — the existing flow (selfRegister then createMockInterview) will work once the backend trap is fixed

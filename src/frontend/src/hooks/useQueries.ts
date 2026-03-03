@@ -42,10 +42,20 @@ export function useGetSession(sessionId: bigint | null) {
     queryKey: ["session", sessionId?.toString()],
     queryFn: async () => {
       if (!actor || sessionId === null) return null;
-      return actor.getSession(sessionId);
+      try {
+        const result = await actor.getSession(sessionId);
+        return result;
+      } catch (err) {
+        console.warn("getSession failed:", err);
+        return null;
+      }
     },
     enabled: !!actor && !isFetching && sessionId !== null,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
+    retry: 6,
+    retryDelay: 1000,
+    // staleTime 0 ensures we always re-fetch after navigation
+    staleTime: 0,
   });
 }
 
@@ -55,7 +65,12 @@ export function useGetCallerUserProfile() {
     queryKey: ["callerProfile"],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch {
+        // unregistered user — profile not found
+        return null;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -67,7 +82,12 @@ export function useGetCallerRole() {
     queryKey: ["callerRole"],
     queryFn: async () => {
       if (!actor) return "guest" as UserRole;
-      return actor.getCallerUserRole();
+      try {
+        return await actor.getCallerUserRole();
+      } catch {
+        // unregistered user — treat as guest
+        return "guest" as UserRole;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -79,7 +99,12 @@ export function useIsCallerAdmin() {
     queryKey: ["isAdmin"],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
+      try {
+        return await actor.isCallerAdmin();
+      } catch {
+        // unregistered user — not admin
+        return false;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -358,7 +383,12 @@ export function useGetSessionAnswers(sessionId: bigint | null) {
     queryKey: ["sessionAnswers", sessionId?.toString()],
     queryFn: async () => {
       if (!actor || sessionId === null) return [];
-      return actor.getSessionAnswers(sessionId);
+      try {
+        return await actor.getSessionAnswers(sessionId);
+      } catch (err) {
+        console.warn("getSessionAnswers failed:", err);
+        return [];
+      }
     },
     enabled: !!actor && !isFetching && sessionId !== null,
   });
@@ -403,6 +433,21 @@ export function useClaimFirstAdmin() {
       void qc.invalidateQueries({ queryKey: ["isAdmin"] });
       void qc.invalidateQueries({ queryKey: ["callerRole"] });
       void qc.invalidateQueries({ queryKey: ["adminAssigned"] });
+    },
+  });
+}
+
+export function useSelfRegisterAsUser() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Not connected");
+      return actor.selfRegisterAsUser();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["callerRole"] });
+      void qc.invalidateQueries({ queryKey: ["isAdmin"] });
     },
   });
 }

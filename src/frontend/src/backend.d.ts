@@ -84,6 +84,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     scoreAnswer(sessionId: bigint, questionId: bigint, score: bigint, feedback: string): Promise<void>;
     scoreMockAnswer(sessionId: bigint, questionId: bigint, score: bigint, feedback: string): Promise<void>;
+    selfRegisterAsUser(): Promise<void>;
     startSession(sessionId: bigint): Promise<void>;
     submitAnswer(sessionId: bigint, questionId: bigint, answerText: string, timeTakenSeconds: bigint): Promise<void>;
     submitSession(sessionId: bigint): Promise<void>;

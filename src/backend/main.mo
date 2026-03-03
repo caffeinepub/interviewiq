@@ -1,18 +1,16 @@
 import Iter "mo:core/Iter";
-import Array "mo:core/Array";
 import Time "mo:core/Time";
-import Text "mo:core/Text";
-import Order "mo:core/Order";
 import List "mo:core/List";
 import Map "mo:core/Map";
+import Order "mo:core/Order";
+import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
+import Array "mo:core/Array";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -105,18 +103,38 @@ actor {
   let interviewSessions = Map.empty<Nat, SessionData>();
   let userProfiles = Map.empty<Principal, UserProfile>();
 
+  // Claim the initial admin role (first-come-first-served)
   public shared ({ caller }) func claimFirstAdmin() : async () {
     if (caller.isAnonymous()) {
       Runtime.trap("Anonymous identities cannot claim the first admin role");
     };
-    AccessControl.assignRole(accessControlState, caller, caller, #admin);
+    if (accessControlState.adminAssigned) {
+      Runtime.trap("Admin has already been claimed. Contact the existing admin to assign your role.");
+    };
+
+    accessControlState.userRoles.add(caller, #admin);
+    accessControlState.adminAssigned := true;
   };
 
-  public query func getAdminAssigned() : async Bool {
-    AccessControl.isAdmin(accessControlState, Principal.fromText("2vxsx-fae"));
+  // Self-register as a normal user
+  public shared ({ caller }) func selfRegisterAsUser() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous identities cannot register as user");
+    };
+    switch (accessControlState.userRoles.get(caller)) {
+      case (?_) { () }; // already registered, do nothing
+      case (null) {
+        accessControlState.userRoles.add(caller, #user);
+      };
+    };
   };
 
-  // User Profile Management (required by frontend)
+  // Check if admin role has been claimed
+  public query ({ caller }) func getAdminAssigned() : async Bool {
+    accessControlState.adminAssigned;
+  };
+
+  // Required by frontend
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
@@ -184,10 +202,8 @@ actor {
     questions.remove(id);
   };
 
+  // Get all questions (public access)
   public query ({ caller }) func getAllQuestions() : async [Question] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view questions");
-    };
     questions.values().toArray();
   };
 
@@ -247,27 +263,43 @@ actor {
     id;
   };
 
-  public query ({ caller }) func getSession(sessionId : Nat) : async ?InterviewSession {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view sessions");
+  // For support, we allow non-users to read their own sessions or create mock sessions.
+  func autoRegisterUserIfNeeded(caller : Principal) {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users are not allowed");
     };
+    switch (accessControlState.userRoles.get(caller)) {
+      case (null) {
+        accessControlState.userRoles.add(caller, #user);
+      };
+      case (?_) { () }; // already registered, do nothing
+    };
+  };
 
+  // Auth for sessions: trap if anonymous, allow authenticated users to read their own sessions (candidate or evaluator), admins can read all
+  func checkSessionReadAccess(caller : Principal, session : InterviewSession) {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot view sessions");
+    };
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      if (caller != session.candidate and caller != session.evaluator) {
+        Runtime.trap("Unauthorized: Can only view your own sessions");
+      };
+    };
+  };
+
+  public query ({ caller }) func getSession(sessionId : Nat) : async ?InterviewSession {
     switch (interviewSessions.get(sessionId)) {
       case (null) { null };
       case (?data) {
-        // Candidates can view their own sessions, evaluators can view sessions they created, admins can view all
-        if (caller != data.session.candidate and caller != data.session.evaluator and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Can only view your own sessions");
-        };
+        checkSessionReadAccess(caller, data.session);
         ?data.session;
       };
     };
   };
 
   public shared ({ caller }) func startSession(sessionId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can start sessions");
-    };
+    autoRegisterUserIfNeeded(caller);
 
     let sessionData = switch (interviewSessions.get(sessionId)) {
       case (null) { Runtime.trap("Session not found") };
@@ -302,9 +334,7 @@ actor {
   };
 
   public shared ({ caller }) func submitSession(sessionId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can submit sessions");
-    };
+    autoRegisterUserIfNeeded(caller);
 
     let sessionData = switch (interviewSessions.get(sessionId)) {
       case (null) { Runtime.trap("Session not found") };
@@ -321,14 +351,14 @@ actor {
       func(submission : AnswerSubmission) : AnswerSubmission {
         let answerLength = submission.answerText.size();
         let (score, feedback) = if (answerLength == 0) {
-          (0, "No answer provided.")
+          (0, "No answer provided.");
         } else if (answerLength <= 49) {
-          (20, "Brief answer — try to elaborate more.")
+          (20, "Brief answer \u{2014} try to elaborate more.");
         } else if (answerLength <= 149) {
-          (50, "Adequate answer — could be more detailed.")
+          (50, "Adequate answer \u{2014} could be more detailed.");
         } else if (answerLength <= 299) {
-          (70, "Good answer — well explained.")
-        } else { (90, "Excellent answer — comprehensive and detailed.") };
+          (70, "Good answer \u{2014} well explained.");
+        } else { (90, "Excellent answer \u{2014} comprehensive and detailed.") };
 
         {
           questionId = submission.questionId;
@@ -380,7 +410,7 @@ actor {
       evaluator = sessionData.session.evaluator;
       questionIds = sessionData.session.questionIds;
       timeLimitMinutes = sessionData.session.timeLimitMinutes;
-      status = #evaluated; // Set status to #evaluated
+      status = #evaluated;
       startTime = sessionData.session.startTime;
       endTime = ?Time.now();
       overallScore = ?overallScore;
@@ -394,61 +424,6 @@ actor {
       submissions = scoredSubmissions;
     };
 
-    interviewSessions.add(sessionId, updatedData);
-  };
-
-  // Get session answers (scored) - new function
-  public query ({ caller }) func getSessionAnswers(sessionId : Nat) : async [AnswerSubmission] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view session answers");
-    };
-
-    switch (interviewSessions.get(sessionId)) {
-      case (null) { [] };
-      case (?data) {
-        // Candidates can view their own sessions, admins can view all
-        if (caller != data.session.candidate and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Can only view your own session answers");
-        };
-        data.submissions;
-      };
-    };
-  };
-
-  // Answer Submission
-  public shared ({ caller }) func submitAnswer(sessionId : Nat, questionId : Nat, answerText : Text, timeTakenSeconds : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can submit answers");
-    };
-
-    let sessionData = switch (interviewSessions.get(sessionId)) {
-      case (null) { Runtime.trap("Session not found") };
-      case (?data) { data };
-    };
-
-    // Only the candidate assigned to this session can submit answers
-    if (caller != sessionData.session.candidate) {
-      Runtime.trap("Unauthorized: Only the assigned candidate can submit answers to this session");
-    };
-
-    let answer : AnswerSubmission = {
-      questionId;
-      answerText;
-      timeTakenSeconds;
-      score = null;
-      feedback = null;
-    };
-
-    let submissions = List.empty<AnswerSubmission>();
-    for (submission in sessionData.submissions.values()) {
-      submissions.add(submission);
-    };
-    submissions.add(answer);
-
-    let updatedData : SessionData = {
-      session = sessionData.session;
-      submissions = submissions.toArray();
-    };
     interviewSessions.add(sessionId, updatedData);
   };
 
@@ -566,11 +541,48 @@ actor {
     interviewSessions.add(sessionId, updatedData);
   };
 
+  // Answer Submission: Only a candidate can submit answers.
+  func submitAnswerPrivate(caller : Principal, sessionId : Nat, questionId : Nat, answerText : Text, timeTakenSeconds : Nat) {
+    let sessionData = switch (interviewSessions.get(sessionId)) {
+      case (null) { Runtime.trap("Session not found") };
+      case (?data) { data };
+    };
+
+    // Only the candidate assigned the session can answer it.
+    if (caller != sessionData.session.candidate) {
+      Runtime.trap("Unauthorized: Only the assigned candidate can submit answers to this session");
+    };
+
+    let answer : AnswerSubmission = {
+      questionId;
+      answerText;
+      timeTakenSeconds;
+      score = null;
+      feedback = null;
+    };
+
+    let submissions = List.empty<AnswerSubmission>();
+    for (submission in sessionData.submissions.values()) {
+      submissions.add(submission);
+    };
+    submissions.add(answer);
+
+    let updatedData : SessionData = {
+      session = sessionData.session;
+      submissions = submissions.toArray();
+    };
+    interviewSessions.add(sessionId, updatedData);
+  };
+
+  // Answer Submission: Handles both candidate (with auto-register) and examiner paths.
+  public shared ({ caller }) func submitAnswer(sessionId : Nat, questionId : Nat, answerText : Text, timeTakenSeconds : Nat) : async () {
+    autoRegisterUserIfNeeded(caller);
+    submitAnswerPrivate(caller, sessionId, questionId, answerText, timeTakenSeconds);
+  };
+
   // Mock Interviews (Candidate self-practice)
   public shared ({ caller }) func createMockInterview(questionIds : [Nat], timeLimitMinutes : Nat) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create mock interviews");
-    };
+    autoRegisterUserIfNeeded(caller);
 
     let id = nextSessionId;
     let session : InterviewSession = {
@@ -633,5 +645,22 @@ actor {
     };
     interviewSessions.add(sessionId, updatedData);
   };
-};
 
+  // Get session answers (scored)
+  public query ({ caller }) func getSessionAnswers(sessionId : Nat) : async [AnswerSubmission] {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot view session answers");
+    };
+    switch (interviewSessions.get(sessionId)) {
+      case (null) { [] };
+      case (?data) {
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          if (caller != data.session.candidate and caller != data.session.evaluator) {
+            Runtime.trap("Unauthorized: Can only view your own session answers");
+          };
+        };
+        data.submissions;
+      };
+    };
+  };
+};

@@ -14,6 +14,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,26 +30,66 @@ import {
   AlertTriangle,
   ArrowLeft,
   BrainCircuit,
+  Camera,
+  CameraOff,
   CheckCircle2,
   ChevronRight,
   Clock,
   Code,
+  FileText,
   Loader2,
+  MinimizeIcon,
   PlayCircle,
   Send,
+  ShieldAlert,
+  ShieldCheck,
   Trophy,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { InterviewStatus } from "../backend.d";
+import { useCamera } from "../camera/useCamera";
 import { DifficultyBadge, StatusBadge } from "../components/StatusBadge";
 import {
   useGetAllQuestions,
   useGetSession,
+  useSelfRegisterAsUser,
   useStartSession,
   useSubmitAnswer,
   useSubmitSession,
 } from "../hooks/useQueries";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type CodeLanguage =
+  | "javascript"
+  | "typescript"
+  | "python"
+  | "java"
+  | "cpp"
+  | "go";
+
+const CODE_LANGUAGES: { value: CodeLanguage; label: string }[] = [
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "cpp", label: "C++" },
+  { value: "go", label: "Go" },
+];
+
+const CODE_PLACEHOLDERS: Record<CodeLanguage, string> = {
+  javascript:
+    "// Write your JavaScript solution here...\nfunction solution() {\n  \n}",
+  typescript:
+    "// Write your TypeScript solution here...\nfunction solution(): void {\n  \n}",
+  python: "# Write your Python solution here\ndef solution():\n    pass",
+  java: "// Write your Java solution here\npublic class Solution {\n    public void solve() {\n        \n    }\n}",
+  cpp: "// Write your C++ solution here\n#include <iostream>\nusing namespace std;\n\nvoid solution() {\n    \n}",
+  go: "// Write your Go solution here\npackage main\n\nfunc solution() {\n\t\n}",
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -53,18 +100,150 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+// ─── Camera Proctoring Panel ──────────────────────────────────────────────────
+
+interface CameraPanelProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  isActive: boolean;
+  isLoading: boolean;
+  error: { type: string; message: string } | null;
+  onEnable: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+}
+
+function CameraPanel({
+  videoRef,
+  canvasRef,
+  isActive,
+  isLoading,
+  error,
+  onEnable,
+  collapsed,
+  onToggleCollapse,
+}: CameraPanelProps) {
+  return (
+    <div
+      className={cn(
+        "fixed top-[5rem] right-4 z-40 rounded-xl overflow-hidden shadow-lg border border-border/60 bg-card transition-all duration-300",
+        collapsed ? "w-10 h-10" : "w-[200px]",
+      )}
+    >
+      {collapsed ? (
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="w-full h-full flex items-center justify-center hover:bg-accent/20 transition-colors"
+          title="Show camera preview"
+          aria-label="Expand camera panel"
+        >
+          <Camera
+            size={16}
+            className={isActive ? "text-success" : "text-muted-foreground"}
+          />
+        </button>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="flex items-center justify-between px-2 py-1.5 bg-card/90 backdrop-blur-sm border-b border-border/40">
+            <div className="flex items-center gap-1">
+              <Camera
+                size={11}
+                className={isActive ? "text-success" : "text-muted-foreground"}
+              />
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {isActive ? "Proctored" : "Camera"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Collapse camera panel"
+            >
+              <MinimizeIcon size={10} />
+            </button>
+          </div>
+
+          {/* Video area */}
+          <div
+            className="relative bg-zinc-900"
+            style={{ width: 200, height: 150 }}
+          >
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+              style={{
+                transform: "scaleX(-1)",
+                display: isActive ? "block" : "none",
+              }}
+            />
+            <canvas ref={canvasRef} className="hidden" />
+
+            {!isActive && !isLoading && !error && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2">
+                <CameraOff size={20} className="text-zinc-500" />
+                <button
+                  type="button"
+                  onClick={onEnable}
+                  className="text-[10px] text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
+                  data-ocid="session.camera_enable_button"
+                >
+                  Enable camera
+                </button>
+              </div>
+            )}
+
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80">
+                <Loader2 size={18} className="animate-spin text-primary" />
+              </div>
+            )}
+
+            {error && !isActive && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
+                <CameraOff size={16} className="text-destructive" />
+                <span className="text-[9px] text-destructive text-center leading-tight">
+                  {error.type === "permission"
+                    ? "Permission denied"
+                    : error.message}
+                </span>
+              </div>
+            )}
+
+            {/* Active indicator */}
+            {isActive && (
+              <div className="absolute top-1 left-1 flex items-center gap-1 bg-black/50 rounded-full px-1.5 py-0.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                <span className="text-[9px] text-white font-medium">LIVE</span>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export function InterviewSession() {
   const { id } = useParams({ from: "/session/$id" });
   const sessionId = BigInt(id);
   const navigate = useNavigate();
 
-  const { data: session, isLoading: loadingSession } = useGetSession(sessionId);
-  const { data: allQuestions, isLoading: loadingQuestions } =
-    useGetAllQuestions();
+  const { data: session } = useGetSession(sessionId);
+  const { data: allQuestions } = useGetAllQuestions();
+  const selfRegister = useSelfRegisterAsUser();
   const startSession = useStartSession();
   const submitAnswer = useSubmitAnswer();
   const submitSession = useSubmitSession();
 
+  // ── Core session state ──
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submittedAnswers, setSubmittedAnswers] = useState<Set<string>>(
@@ -74,14 +253,37 @@ export function InterviewSession() {
   const [_questionStartTime, setQuestionStartTime] = useState<number>(
     Date.now(),
   );
-  const [showCodeMode, setShowCodeMode] = useState(false);
   const questionStartRef = useRef<number>(Date.now());
+
+  // ── "Grace period" before showing session-not-found error ──
+  // Give the backend up to 8 seconds to return the newly created session
+  const [graceExpired, setGraceExpired] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setGraceExpired(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // ── Code editor state ──
+  const [showCodeMode, setShowCodeMode] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState<CodeLanguage>("javascript");
+
+  // ── Camera proctoring state ──
+  const camera = useCamera({ facingMode: "user", width: 320, height: 240 });
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [cameraCollapsed, setCameraCollapsed] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  // ── Anti-cheat state ──
+  const [violations, setViolations] = useState(0);
+  const violationsRef = useRef(0);
 
   const sessionQuestions = (session?.questionIds ?? []).map((qId) =>
     (allQuestions ?? []).find((q) => q.id === qId),
   );
 
-  // Initialize timer
+  const isInProgress = session?.status === InterviewStatus.inProgress;
+
+  // ── Initialize timer ──
   useEffect(() => {
     if (
       session?.status === InterviewStatus.inProgress &&
@@ -99,7 +301,7 @@ export function InterviewSession() {
     }
   }, [session?.status, session?.timeLimitMinutes, session?.startTime]);
 
-  // Countdown timer
+  // ── Countdown timer ──
   useEffect(() => {
     if (timeLeft === null || timeLeft <= 0) return;
     const interval = setInterval(() => {
@@ -114,7 +316,7 @@ export function InterviewSession() {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // Auto-submit when time runs out
+  // ── Auto-submit when time runs out ──
   useEffect(() => {
     if (timeLeft === 0 && session?.status === InterviewStatus.inProgress) {
       toast.warning("Time's up! Submitting your interview.");
@@ -123,15 +325,90 @@ export function InterviewSession() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, session?.status]);
 
+  // ── Camera: start/stop based on session status ──
+  const cameraStartRef = useRef(camera.startCamera);
+  cameraStartRef.current = camera.startCamera;
+  useEffect(() => {
+    if (isInProgress && cameraEnabled) {
+      void cameraStartRef.current();
+    }
+  }, [isInProgress, cameraEnabled]);
+
+  // ── Anti-cheat: register listeners when in progress ──
+  useEffect(() => {
+    if (!isInProgress) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        violationsRef.current += 1;
+        setViolations(violationsRef.current);
+        toast.warning("⚠️ Warning: Leaving the exam window has been flagged!", {
+          id: "anticheat-warning",
+          duration: 4000,
+        });
+      }
+    };
+
+    const handleBlur = () => {
+      // Only count window blur if document is still visible (tab switch via keyboard, etc.)
+      if (document.visibilityState === "visible") {
+        violationsRef.current += 1;
+        setViolations(violationsRef.current);
+        toast.warning("⚠️ Warning: Leaving the exam window has been flagged!", {
+          id: "anticheat-warning",
+          duration: 4000,
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleBlur);
+    };
+  }, [isInProgress]);
+
+  // ── Enable camera before start ──
+  const handleRequestCamera = async () => {
+    setCameraEnabled(true);
+    const ok = await camera.startCamera();
+    if (!ok) {
+      if (camera.error?.type === "permission") {
+        setPermissionDenied(true);
+        toast.warning(
+          "Camera permission denied. Session will continue without proctoring.",
+        );
+      }
+    }
+  };
+
   const handleStart = async () => {
     try {
+      // Ensure user is registered before starting (handles direct navigation to session URL)
+      try {
+        await selfRegister.mutateAsync();
+      } catch (_regErr) {
+        // Already registered or registration issue — continue
+      }
       await startSession.mutateAsync(sessionId);
       setQuestionStartTime(Date.now());
       questionStartRef.current = Date.now();
       toast.success("Interview started! Good luck.");
+      // Start camera if enabled
+      if (cameraEnabled && !camera.isActive) {
+        void camera.startCamera();
+      }
     } catch (err) {
-      toast.error("Failed to start session.");
       console.error(err);
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(
+        msg.toLowerCase().includes("unauthorized") ||
+          msg.toLowerCase().includes("candidate")
+          ? "You are not authorized to start this session. Make sure you created this assessment."
+          : "Failed to start session. Please try again.",
+      );
     }
   };
 
@@ -167,53 +444,84 @@ export function InterviewSession() {
         setQuestionStartTime(Date.now());
       }
     } catch (err) {
-      toast.error("Failed to submit answer.");
       console.error(err);
+      toast.error("Failed to submit answer. Please try again.");
     }
   };
 
   const handleSubmitSession = useCallback(async () => {
+    // Stop camera on submit
+    if (camera.isActive) {
+      void camera.stopCamera();
+    }
     try {
       await submitSession.mutateAsync(sessionId);
       toast.success("Assessment submitted! Viewing your results...");
       void navigate({ to: "/assessment/results/$id", params: { id } });
     } catch (err) {
-      toast.error("Failed to submit interview.");
       console.error(err);
+      toast.error("Failed to submit assessment. Please try again.");
     }
-  }, [sessionId, submitSession, navigate, id]);
+  }, [sessionId, submitSession, navigate, id, camera]);
 
-  const isLoading = loadingSession || loadingQuestions;
-
-  if (isLoading) {
-    return (
-      <div
-        className="container py-8 space-y-4"
-        data-ocid="session.loading_state"
-      >
-        <Skeleton className="h-8 w-48" />
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Skeleton className="h-80 lg:col-span-1" />
-          <Skeleton className="h-80 lg:col-span-2" />
-        </div>
-      </div>
-    );
-  }
+  // ── Tab key handler for code editor ──
+  const handleCodeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const target = e.target as HTMLTextAreaElement;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const currentQId = sessionQuestions[currentQuestionIdx]?.id.toString();
+      if (!currentQId) return;
+      const currentValue = answers[currentQId] ?? "";
+      const newValue = `${currentValue.substring(0, start)}  ${currentValue.substring(end)}`;
+      setAnswers((prev) => ({ ...prev, [currentQId]: newValue }));
+      // Restore cursor position after React re-render
+      requestAnimationFrame(() => {
+        target.selectionStart = start + 2;
+        target.selectionEnd = start + 2;
+      });
+    }
+  };
 
   if (!session) {
+    // Grace period: show loading skeleton until graceExpired, then show error
+    if (!graceExpired) {
+      return (
+        <div
+          className="container py-8 space-y-4"
+          data-ocid="session.loading_state"
+        >
+          <Skeleton className="h-8 w-48" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Skeleton className="h-80 lg:col-span-1" />
+            <Skeleton className="h-80 lg:col-span-2" />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="container py-8" data-ocid="session.error_state">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Session not found. It may have been deleted or the ID is invalid.
+            Session not found. It may have been deleted, or the ID is invalid.
+            Please go back and start a new assessment.
           </AlertDescription>
         </Alert>
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/assessment">
+              <ArrowLeft size={13} className="mr-1" />
+              Back to Assessment
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
-  // Completed/Evaluated
+  // ── Completed / Evaluated ──
   if (
     session.status === InterviewStatus.completed ||
     session.status === InterviewStatus.evaluated
@@ -269,7 +577,7 @@ export function InterviewSession() {
     );
   }
 
-  // Scheduled (not yet started)
+  // ── Scheduled (not yet started) ──
   if (session.status === InterviewStatus.scheduled) {
     return (
       <div className="container py-16 flex justify-center">
@@ -287,7 +595,9 @@ export function InterviewSession() {
               <strong>{Number(session.timeLimitMinutes)} minute</strong> time
               limit.
             </p>
-            <div className="mb-8 rounded-lg bg-warning/5 border border-warning/20 p-4 text-sm text-left space-y-1.5">
+
+            {/* Rules */}
+            <div className="mb-5 rounded-lg bg-warning/5 border border-warning/20 p-4 text-sm text-left space-y-1.5">
               <p className="font-medium text-warning">Before you begin:</p>
               <p className="text-muted-foreground">
                 • Once started, the timer begins immediately
@@ -298,7 +608,57 @@ export function InterviewSession() {
               <p className="text-muted-foreground">
                 • Your session is auto-submitted when time expires
               </p>
+              <p className="text-muted-foreground">
+                • Tab switching and window changes are monitored
+              </p>
             </div>
+
+            {/* Camera proctoring opt-in */}
+            <div className="mb-6 rounded-lg bg-muted/30 border border-border/40 p-4 text-sm text-left">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Camera size={15} className="text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm mb-1">Camera Proctoring</p>
+                  <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                    Enable your webcam to mark this session as proctored. Your
+                    camera preview stays visible during the test.
+                  </p>
+                  {camera.isActive ? (
+                    <Badge className="bg-success/10 text-success border-success/30 gap-1.5 text-xs">
+                      <ShieldCheck size={11} />
+                      Camera Active — Proctored
+                    </Badge>
+                  ) : permissionDenied ? (
+                    <Badge
+                      variant="outline"
+                      className="border-warning/40 text-warning gap-1.5 text-xs"
+                    >
+                      <ShieldAlert size={11} />
+                      Camera denied — Unproctored session
+                    </Badge>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRequestCamera}
+                      disabled={camera.isLoading}
+                      className="gap-1.5 border-primary/30 text-primary hover:bg-primary/5 text-xs h-7"
+                      data-ocid="session.enable_camera_button"
+                    >
+                      {camera.isLoading ? (
+                        <Loader2 size={11} className="animate-spin" />
+                      ) : (
+                        <Camera size={11} />
+                      )}
+                      Enable Camera for Proctoring
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <Button
               onClick={handleStart}
               disabled={startSession.isPending}
@@ -329,18 +689,33 @@ export function InterviewSession() {
     );
   }
 
-  // In Progress
+  // ── In Progress ──
   const currentQ = sessionQuestions[currentQuestionIdx];
   const currentQId = currentQ?.id.toString();
   const progressPct = (submittedAnswers.size / sessionQuestions.length) * 100;
   const allAnswered = submittedAnswers.size >= sessionQuestions.length;
   const isTimeCritical = timeLeft !== null && timeLeft < 120;
+  const selectedLang = CODE_LANGUAGES.find((l) => l.value === codeLanguage);
 
   return (
     <div className="container py-6 space-y-4">
+      {/* Camera Proctoring Panel (floating) */}
+      {(cameraEnabled || camera.isActive) && (
+        <CameraPanel
+          videoRef={camera.videoRef}
+          canvasRef={camera.canvasRef}
+          isActive={camera.isActive}
+          isLoading={camera.isLoading}
+          error={camera.error}
+          onEnable={() => void camera.startCamera()}
+          collapsed={cameraCollapsed}
+          onToggleCollapse={() => setCameraCollapsed((p) => !p)}
+        />
+      )}
+
       {/* Top Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge
             variant="outline"
             className="border-primary/30 text-primary bg-primary/5"
@@ -348,9 +723,41 @@ export function InterviewSession() {
             Session #{id}
           </Badge>
           <StatusBadge status={session.status} />
+
+          {/* Proctoring badge */}
+          {camera.isActive ? (
+            <Badge className="bg-success/10 text-success border-success/30 gap-1 text-xs">
+              <ShieldCheck size={10} />
+              Proctored
+            </Badge>
+          ) : permissionDenied ? (
+            <Badge
+              variant="outline"
+              className="border-warning/40 text-warning gap-1 text-xs"
+            >
+              <ShieldAlert size={10} />
+              Unproctored
+            </Badge>
+          ) : null}
+
+          {/* Violations badge */}
+          {violations > 0 && (
+            <Badge
+              className={cn(
+                "gap-1 text-xs",
+                violations >= 3
+                  ? "bg-destructive/10 text-destructive border-destructive/30"
+                  : "bg-warning/10 text-warning border-warning/30",
+              )}
+              data-ocid="session.violations_badge"
+            >
+              <ShieldAlert size={10} />
+              Violations: {violations}
+            </Badge>
+          )}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {timeLeft !== null && (
             <div
               className={cn(
@@ -406,6 +813,22 @@ export function InterviewSession() {
           </AlertDialog>
         </div>
       </div>
+
+      {/* Anti-cheat persistent alert for 3+ violations */}
+      {violations >= 3 && (
+        <Alert
+          variant="destructive"
+          className="border-destructive/50"
+          data-ocid="session.anticheat_alert"
+        >
+          <ShieldAlert className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Excessive tab switching detected.</strong> This session may
+            be flagged for review. Please keep this window focused for the
+            remainder of your assessment.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Progress */}
       <div className="space-y-1">
@@ -528,45 +951,133 @@ export function InterviewSession() {
             {/* Answer Panel */}
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-display text-sm">
-                    Your Answer
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs h-7 gap-1"
-                    onClick={() => setShowCodeMode((p) => !p)}
-                  >
-                    <Code size={12} />
-                    {showCodeMode ? "Text Mode" : "Code Mode"}
-                  </Button>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="font-display text-sm">
+                      Your Answer
+                    </CardTitle>
+                    {showCodeMode && selectedLang && (
+                      <Badge
+                        variant="outline"
+                        className="border-primary/30 text-primary bg-primary/5 gap-1 text-xs"
+                      >
+                        <Code size={9} />
+                        {selectedLang.label}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Language selector — only visible in code mode */}
+                    {showCodeMode && (
+                      <Select
+                        value={codeLanguage}
+                        onValueChange={(v) =>
+                          setCodeLanguage(v as CodeLanguage)
+                        }
+                      >
+                        <SelectTrigger
+                          className="h-7 text-xs w-[120px] border-border/60"
+                          data-ocid="session.language_select"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CODE_LANGUAGES.map((lang) => (
+                            <SelectItem
+                              key={lang.value}
+                              value={lang.value}
+                              className="text-xs"
+                            >
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {/* Mode toggle */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7 gap-1"
+                      onClick={() => setShowCodeMode((p) => !p)}
+                      data-ocid="session.mode_toggle"
+                    >
+                      {showCodeMode ? (
+                        <>
+                          <FileText size={12} />
+                          Text Mode
+                        </>
+                      ) : (
+                        <>
+                          <Code size={12} />
+                          Code Mode
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Textarea
-                  placeholder={
-                    showCodeMode
-                      ? "// Write your code solution here..."
-                      : "Describe your approach, explain your reasoning, and provide examples..."
-                  }
-                  value={currentQId ? (answers[currentQId] ?? "") : ""}
-                  onChange={(e) => {
-                    if (!currentQId) return;
-                    setAnswers((prev) => ({
-                      ...prev,
-                      [currentQId]: e.target.value,
-                    }));
-                  }}
-                  disabled={
-                    currentQId ? submittedAnswers.has(currentQId) : false
-                  }
-                  className={cn(
-                    "min-h-[200px] resize-y",
-                    showCodeMode && "font-mono text-sm",
-                  )}
-                  data-ocid="session.answer_textarea"
-                />
+                {showCodeMode ? (
+                  /* ── Code Editor ── */
+                  <div className="relative rounded-lg overflow-hidden border border-border/60">
+                    {/* Language label top-right */}
+                    <div className="absolute top-2 right-3 z-10 pointer-events-none">
+                      <span className="text-[10px] font-mono text-zinc-500 select-none">
+                        {selectedLang?.label}
+                      </span>
+                    </div>
+                    <textarea
+                      placeholder={CODE_PLACEHOLDERS[codeLanguage]}
+                      value={currentQId ? (answers[currentQId] ?? "") : ""}
+                      onChange={(e) => {
+                        if (!currentQId) return;
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [currentQId]: e.target.value,
+                        }));
+                      }}
+                      onKeyDown={handleCodeKeyDown}
+                      disabled={
+                        currentQId ? submittedAnswers.has(currentQId) : false
+                      }
+                      spellCheck={false}
+                      className={cn(
+                        "w-full min-h-[280px] resize-y bg-zinc-900 text-zinc-100 px-4 pt-4 pb-4 pr-16 outline-none border-none",
+                        "placeholder:text-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed",
+                      )}
+                      style={{
+                        fontFamily:
+                          "ui-monospace, 'JetBrains Mono', 'Geist Mono', monospace",
+                        fontSize: "13px",
+                        lineHeight: "1.6",
+                        tabSize: 2,
+                      }}
+                      data-ocid="session.code_editor"
+                    />
+                  </div>
+                ) : (
+                  /* ── Text Editor ── */
+                  <Textarea
+                    placeholder="Describe your approach, explain your reasoning, and provide examples..."
+                    value={currentQId ? (answers[currentQId] ?? "") : ""}
+                    onChange={(e) => {
+                      if (!currentQId) return;
+                      setAnswers((prev) => ({
+                        ...prev,
+                        [currentQId]: e.target.value,
+                      }));
+                    }}
+                    disabled={
+                      currentQId ? submittedAnswers.has(currentQId) : false
+                    }
+                    className="min-h-[200px] resize-y"
+                    data-ocid="session.answer_textarea"
+                  />
+                )}
+
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-muted-foreground">
                     {currentQId && answers[currentQId]

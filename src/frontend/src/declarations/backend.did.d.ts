@@ -89,6 +89,7 @@ export interface _SERVICE {
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'scoreAnswer' : ActorMethod<[bigint, bigint, bigint, string], undefined>,
   'scoreMockAnswer' : ActorMethod<[bigint, bigint, bigint, string], undefined>,
+  'selfRegisterAsUser' : ActorMethod<[], undefined>,
   'startSession' : ActorMethod<[bigint], undefined>,
   'submitAnswer' : ActorMethod<[bigint, bigint, string, bigint], undefined>,
   'submitSession' : ActorMethod<[bigint], undefined>,

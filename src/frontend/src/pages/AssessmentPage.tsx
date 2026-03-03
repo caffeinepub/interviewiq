@@ -14,12 +14,15 @@ import {
   AlertCircle,
   BookOpen,
   Brain,
+  Camera,
   CheckCircle2,
   Clock,
   Layers,
   Loader2,
   LogIn,
   PlayCircle,
+  Settings,
+  ShieldCheck,
   Shuffle,
   Zap,
 } from "lucide-react";
@@ -31,6 +34,7 @@ import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useCreateMockInterview,
   useGetAllQuestions,
+  useSelfRegisterAsUser,
 } from "../hooks/useQueries";
 
 const assessmentRules = [
@@ -65,6 +69,22 @@ const assessmentRules = [
       "Questions are intelligently drawn from all available categories for well-rounded coverage.",
     color: "text-success",
     bg: "bg-success/10",
+  },
+  {
+    icon: Camera,
+    title: "Camera Proctoring",
+    description:
+      "Optionally enable your webcam before starting for a proctored session. Camera permission can be granted or denied — you can still take the test without it.",
+    color: "text-primary",
+    bg: "bg-primary/10",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Anti-Cheat Monitoring",
+    description:
+      "Tab switches and window focus changes are tracked automatically. Three or more violations flag your session for review. Stay focused!",
+    color: "text-destructive",
+    bg: "bg-destructive/10",
   },
 ];
 
@@ -119,6 +139,7 @@ export function AssessmentPage() {
   const navigate = useNavigate();
 
   const { data: questions, isLoading: loadingQuestions } = useGetAllQuestions();
+  const selfRegister = useSelfRegisterAsUser();
   const createMockInterview = useCreateMockInterview();
 
   const [isStarting, setIsStarting] = useState(false);
@@ -146,7 +167,7 @@ export function AssessmentPage() {
   async function handleStartAssessment() {
     if (!questions || questions.length === 0) {
       toast.error(
-        "No questions available in the bank. Please add questions first.",
+        "Question bank is empty. An admin needs to seed questions first from the Admin Dashboard.",
       );
       return;
     }
@@ -157,9 +178,21 @@ export function AssessmentPage() {
 
       if (selectedIds.length === 0) {
         toast.error("Could not select questions. Please try again.");
+        setIsStarting(false);
         return;
       }
 
+      // Step 1: Ensure user is registered (ignore errors — backend autoRegisters on createMockInterview too)
+      try {
+        await selfRegister.mutateAsync();
+      } catch (regErr) {
+        console.warn("selfRegisterAsUser skipped:", regErr);
+      }
+
+      // Step 2: Small delay to ensure registration propagates to the canister
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Step 3: Create the mock interview session
       const sessionId = await createMockInterview.mutateAsync({
         questionIds: selectedIds,
         timeLimitMinutes: BigInt(30),
@@ -171,8 +204,22 @@ export function AssessmentPage() {
         params: { id: sessionId.toString() },
       });
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to start assessment. Please try again.");
+      console.error("Assessment creation failed:", err);
+      const message = err instanceof Error ? err.message : String(err);
+      if (
+        message.toLowerCase().includes("unauthorized") ||
+        message.toLowerCase().includes("anonymous")
+      ) {
+        toast.error(
+          "Please sign in with Internet Identity to start the assessment.",
+        );
+      } else if (message.toLowerCase().includes("not connected")) {
+        toast.error(
+          "Connection not ready. Please wait a moment and try again.",
+        );
+      } else {
+        toast.error(`Failed to start assessment: ${message}`);
+      }
     } finally {
       setIsStarting(false);
     }
@@ -246,24 +293,42 @@ export function AssessmentPage() {
               />
             </div>
           ) : !canStart ? (
-            <Alert
-              variant="destructive"
-              className="max-w-md mx-auto"
+            <div
+              className="max-w-md mx-auto space-y-3"
               data-ocid="assessment.empty_state"
             >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                No questions in the bank yet.{" "}
-                <Link
-                  to="/questions"
-                  className="font-medium underline underline-offset-2"
-                  data-ocid="assessment.questions_link"
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="leading-relaxed">
+                  No questions in the bank yet. An admin must seed the question
+                  bank before assessments can be taken.
+                </AlertDescription>
+              </Alert>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+                  asChild
                 >
-                  Add questions
-                </Link>{" "}
-                to enable assessments.
-              </AlertDescription>
-            </Alert>
+                  <Link to="/admin/dashboard" data-ocid="assessment.admin_link">
+                    <Settings size={13} />
+                    Go to Admin Dashboard
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-border/60"
+                  asChild
+                >
+                  <Link to="/questions" data-ocid="assessment.questions_link">
+                    <BookOpen size={13} />
+                    View Question Bank
+                  </Link>
+                </Button>
+              </div>
+            </div>
           ) : (
             <Button
               size="lg"
@@ -300,7 +365,7 @@ export function AssessmentPage() {
               selection needed.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {assessmentRules.map((rule, idx) => (
               <Card
                 key={rule.title}

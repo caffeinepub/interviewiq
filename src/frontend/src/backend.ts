@@ -167,6 +167,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     scoreAnswer(sessionId: bigint, questionId: bigint, score: bigint, feedback: string): Promise<void>;
     scoreMockAnswer(sessionId: bigint, questionId: bigint, score: bigint, feedback: string): Promise<void>;
+    selfRegisterAsUser(): Promise<void>;
     startSession(sessionId: bigint): Promise<void>;
     submitAnswer(sessionId: bigint, questionId: bigint, answerText: string, timeTakenSeconds: bigint): Promise<void>;
     submitSession(sessionId: bigint): Promise<void>;
@@ -480,6 +481,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.scoreMockAnswer(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async selfRegisterAsUser(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.selfRegisterAsUser();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.selfRegisterAsUser();
             return result;
         }
     }
