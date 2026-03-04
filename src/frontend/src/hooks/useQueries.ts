@@ -116,8 +116,13 @@ export function useGetCandidateProfile(principal: string | null) {
     queryKey: ["candidateProfile", principal],
     queryFn: async () => {
       if (!actor || !principal) return null;
-      // @ts-ignore – principal string coercion handled by SDK
-      return actor.getCandidateProfile(principal as never);
+      try {
+        // @ts-ignore – principal string coercion handled by SDK
+        return await actor.getCandidateProfile(principal as never);
+      } catch {
+        // unregistered user — profile not found
+        return null;
+      }
     },
     enabled: !!actor && !isFetching && !!principal,
   });

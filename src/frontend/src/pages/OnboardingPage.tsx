@@ -26,6 +26,7 @@ import {
   useGetCallerUserProfile,
   useIsCallerAdmin,
   useSaveCallerUserProfile,
+  useSelfRegisterAsUser,
 } from "../hooks/useQueries";
 
 const roles = [
@@ -55,6 +56,7 @@ export function OnboardingPage() {
   const { data: existingProfile, isLoading: checkingProfile } =
     useGetCallerUserProfile();
 
+  const selfRegister = useSelfRegisterAsUser();
   const createCandidate = useCreateCandidateProfile();
   const saveProfile = useSaveCallerUserProfile();
 
@@ -87,6 +89,18 @@ export function OnboardingPage() {
     setErrors({});
 
     try {
+      // Step 1: Ensure the caller is registered as a user before saving any profile data.
+      // Without this, createCandidateProfile and saveCallerUserProfile will trap ("Unauthorized").
+      try {
+        await selfRegister.mutateAsync();
+      } catch {
+        // already registered — safe to continue
+      }
+
+      // Step 2: Wait briefly for canister state to settle
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Step 3: Save both profiles in parallel
       await Promise.all([
         createCandidate.mutateAsync(form),
         saveProfile.mutateAsync({ name: form.name }),
@@ -100,7 +114,10 @@ export function OnboardingPage() {
   };
 
   const isLoading = checkingAdmin || checkingProfile;
-  const isPending = createCandidate.isPending || saveProfile.isPending;
+  const isPending =
+    selfRegister.isPending ||
+    createCandidate.isPending ||
+    saveProfile.isPending;
 
   if (!identity) {
     return (
