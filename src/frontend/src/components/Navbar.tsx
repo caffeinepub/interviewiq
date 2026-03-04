@@ -21,6 +21,7 @@ import {
   LogOut,
   PlayCircle,
   Shield,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -73,8 +74,18 @@ export function Navbar() {
                 to="/assessment"
                 label="Assessment"
                 icon={<Brain size={15} />}
-                active={location.pathname.startsWith("/assessment")}
+                active={
+                  location.pathname.startsWith("/assessment") &&
+                  !location.pathname.startsWith("/adaptive")
+                }
                 ocid="nav.assessment_link"
+              />
+              <NavLink
+                to="/adaptive-assessment"
+                label="Adaptive"
+                icon={<Sparkles size={15} />}
+                active={location.pathname.startsWith("/adaptive")}
+                ocid="nav.adaptive_link"
               />
               <NavLink
                 to="/mock-interview/new"
@@ -196,6 +207,15 @@ export function Navbar() {
                       <Link to="/assessment" data-ocid="nav.assessment_link">
                         <Brain size={14} className="mr-2" />
                         Assessment
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/adaptive-assessment"
+                        data-ocid="nav.adaptive_link"
+                      >
+                        <Sparkles size={14} className="mr-2" />
+                        Adaptive Mode
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

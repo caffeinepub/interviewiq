@@ -707,15 +707,26 @@ export function InterviewSession() {
   }, [screenShare.isActive, addProctoringEvent]);
 
   // ── Enable camera before start ──
+  // Set cameraEnabled first so the CameraPanel (and its videoRef) mounts in the
+  // DOM. Then wait one animation frame before calling startCamera so the ref
+  // is attached to the real <video> element.
   const handleRequestCamera = async () => {
     setCameraEnabled(true);
+    // Give React time to render the CameraPanel and attach the videoRef
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     const ok = await camera.startCamera();
     if (!ok) {
-      if (camera.error?.type === "permission") {
+      const errType = camera.error?.type;
+      if (errType === "permission") {
         setPermissionDenied(true);
         toast.warning(
-          "Camera permission denied. Session will continue without proctoring.",
+          "Camera permission denied. Please allow camera access in your browser settings and try again.",
         );
+      } else if (errType === "not-found") {
+        toast.error("No camera found on this device.");
+      } else if (camera.error) {
+        toast.error(camera.error.message);
       }
     }
   };

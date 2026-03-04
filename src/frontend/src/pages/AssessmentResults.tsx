@@ -33,6 +33,7 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Star,
   Timer,
   Trophy,
@@ -46,6 +47,7 @@ import {
   useGetSession,
   useGetSessionAnswers,
 } from "../hooks/useQueries";
+import { getRecommendedQuestions } from "../utils/adaptiveEngine";
 
 // ─── Proctoring types ─────────────────────────────────────────────────────────
 
@@ -755,6 +757,83 @@ export function AssessmentResults() {
           )}
         </CardContent>
       </Card>
+
+      {/* Recommended Practice */}
+      {(() => {
+        // Build score map from session answers
+        const answerScores: Record<string, number> = {};
+        for (const ans of sessionAnswers ?? []) {
+          if (ans.score !== undefined) {
+            answerScores[ans.questionId.toString()] = Number(ans.score);
+          }
+        }
+
+        const recommendations = getRecommendedQuestions(
+          allQuestions ?? [],
+          session.questionIds,
+          answerScores,
+        );
+
+        if (recommendations.length === 0) return null;
+
+        return (
+          <Card
+            className="border-border/60"
+            data-ocid="assessment-results.recommendations_section"
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-base flex items-center gap-2">
+                <Sparkles size={16} className="text-primary" />
+                Recommended Practice
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Based on your answers, reviewing these topics may help you
+                improve
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recommendations.map((q, idx) => (
+                  <div
+                    key={q.id.toString()}
+                    className="rounded-lg border border-border/60 bg-muted/20 p-4 flex items-start justify-between gap-3 hover:border-primary/30 transition-colors"
+                    data-ocid={`assessment-results.recommendation.item.${idx + 1}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <DifficultyBadge difficulty={q.difficulty} />
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-border/60"
+                        >
+                          {q.category}
+                        </Badge>
+                      </div>
+                      <h4 className="font-semibold text-sm leading-snug">
+                        {q.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                        {q.description}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="shrink-0 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/5"
+                    >
+                      <Link to="/interview-answers">
+                        <BrainCircuit size={12} />
+                        Review Strategy
+                      </Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Action Buttons */}
       <Separator />

@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
+import { AdaptiveAssessmentPage } from "./pages/AdaptiveAssessmentPage";
+import { AdaptiveSession } from "./pages/AdaptiveSession";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminPage } from "./pages/AdminPage";
 import { AdmissionsPortal } from "./pages/AdmissionsPortal";
@@ -123,6 +125,18 @@ const assessmentResultsRoute = createRoute({
   component: AssessmentResults,
 });
 
+const adaptiveAssessmentRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/adaptive-assessment",
+  component: AdaptiveAssessmentPage,
+});
+
+const adaptiveSessionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/adaptive-session/$id",
+  component: AdaptiveSession,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -139,6 +153,8 @@ const routeTree = rootRoute.addChildren([
   admissionsRoute,
   assessmentRoute,
   assessmentResultsRoute,
+  adaptiveAssessmentRoute,
+  adaptiveSessionRoute,
 ]);
 
 const router = createRouter({ routeTree });

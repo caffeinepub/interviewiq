@@ -14,9 +14,11 @@ import {
   AlertCircle,
   BookOpen,
   Brain,
+  BrainCircuit,
   Camera,
   CheckCircle2,
   Clock,
+  KeyRound,
   Layers,
   Loader2,
   LogIn,
@@ -24,6 +26,8 @@ import {
   Settings,
   ShieldCheck,
   Shuffle,
+  Sparkles,
+  TrendingUp,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -530,6 +534,79 @@ export function AssessmentPage() {
             </Button>
           </section>
         )}
+
+        {/* Adaptive Mode card */}
+        <Card
+          className="border-primary/30 bg-gradient-to-br from-primary/5 to-background overflow-hidden"
+          data-ocid="assessment.adaptive_card"
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                <BrainCircuit size={18} className="text-primary" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="font-display text-base">
+                    Try Adaptive Mode
+                  </CardTitle>
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-primary/40 bg-primary/5 text-primary gap-1"
+                  >
+                    <Sparkles size={9} />
+                    AI Powered
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs mt-0.5">
+                  AI adjusts question difficulty in real-time based on your
+                  answers
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="grid sm:grid-cols-3 gap-3">
+              {[
+                {
+                  icon: Layers,
+                  label: "10 questions",
+                  sub: "Longer, deeper session",
+                },
+                {
+                  icon: TrendingUp,
+                  label: "Adaptive difficulty",
+                  sub: "Adjusts after every answer",
+                },
+                {
+                  icon: KeyRound,
+                  label: "Keyword analysis",
+                  sub: "Content-aware scoring",
+                },
+              ].map((item) => (
+                <li key={item.label} className="flex items-start gap-2 text-xs">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary mt-0.5">
+                    <item.icon size={12} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">{item.label}</p>
+                    <p className="text-muted-foreground">{item.sub}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Button
+              asChild
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              data-ocid="assessment.adaptive_start_button"
+            >
+              <Link to="/adaptive-assessment">
+                <Zap size={15} />
+                Start Adaptive Assessment
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
