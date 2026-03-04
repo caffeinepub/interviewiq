@@ -18,6 +18,7 @@ import { AssessmentPage } from "./pages/AssessmentPage";
 import { AssessmentReport } from "./pages/AssessmentReport";
 import { AssessmentResults } from "./pages/AssessmentResults";
 import { CandidateDashboard } from "./pages/CandidateDashboard";
+import { CandidateReport } from "./pages/CandidateReport";
 import { EvaluatorDashboard } from "./pages/EvaluatorDashboard";
 import { InterviewAnswers } from "./pages/InterviewAnswers";
 import { InterviewSession } from "./pages/InterviewSession";
@@ -137,6 +138,12 @@ const adaptiveSessionRoute = createRoute({
   component: AdaptiveSession,
 });
 
+const candidateReportRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/candidate/report/$id",
+  component: CandidateReport,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -155,6 +162,7 @@ const routeTree = rootRoute.addChildren([
   assessmentResultsRoute,
   adaptiveAssessmentRoute,
   adaptiveSessionRoute,
+  candidateReportRoute,
 ]);
 
 const router = createRouter({ routeTree });

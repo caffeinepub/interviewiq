@@ -22,6 +22,7 @@ import {
   LogIn,
   Sparkles,
   TrendingUp,
+  Wifi,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -55,7 +56,7 @@ const FEATURE_CARDS = [
     icon: KeyRound,
     title: "Keyword Intelligence",
     description:
-      "Our engine analyzes the content of your answers — not just length — detecting STAR method usage and domain vocabulary.",
+      "The engine analyzes your answer against domain-specific keywords for the question type — detecting STAR method usage, career vocabulary, self-awareness signals, and more.",
     color: "text-warning",
     bg: "bg-warning/10",
   },
@@ -75,7 +76,7 @@ const STEPS = [
   {
     num: 3,
     label: "Adapt",
-    desc: "AI evaluates keywords and structure",
+    desc: "AI evaluates keywords, domain vocabulary, and answer structure",
   },
   {
     num: 4,
@@ -286,11 +287,25 @@ export function AdaptiveAssessmentPage() {
             </span>
           </h1>
 
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed mb-4">
             Our adaptive engine analyzes your responses in real-time and adjusts
             question difficulty to match your performance level. Each answer you
             give shapes the next question you receive.
           </p>
+
+          {/* Live from Question Bank badge */}
+          {!loadingQuestions && totalQuestions > 0 && (
+            <div className="flex justify-center mb-6">
+              <Badge
+                variant="outline"
+                className="border-success/30 bg-success/10 text-success gap-1.5 px-3 py-1 text-xs font-medium"
+              >
+                <Wifi size={11} />
+                {totalQuestions} question{totalQuestions !== 1 ? "s" : ""}{" "}
+                fetched live from question bank
+              </Badge>
+            </div>
+          )}
 
           {loadingQuestions ? (
             <div

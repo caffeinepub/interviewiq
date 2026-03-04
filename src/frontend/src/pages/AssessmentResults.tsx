@@ -554,15 +554,26 @@ export function AssessmentResults() {
               </div>
             </div>
 
-            {/* Snapshots note */}
+            {/* Snapshot thumbnails */}
             {proctoring.snapshots.length > 0 && (
-              <div className="rounded-lg bg-muted/30 border border-border/40 px-3 py-2">
+              <div className="space-y-2">
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Camera size={11} />
                   {proctoring.snapshots.length} periodic snapshot
                   {proctoring.snapshots.length === 1 ? "" : "s"} captured during
                   session
                 </p>
+                <div className="flex gap-2 flex-wrap mt-2">
+                  {proctoring.snapshots.slice(0, 5).map((src, i) => (
+                    <img
+                      // biome-ignore lint/suspicious/noArrayIndexKey: snapshots are indexed by capture order
+                      key={i}
+                      src={src}
+                      alt={`Snapshot ${i + 1}`}
+                      className="w-20 h-16 object-cover rounded border border-border/40"
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -849,16 +860,29 @@ export function AssessmentResults() {
             Back to Dashboard
           </Link>
         </Button>
-        <Button
-          asChild
-          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
-          data-ocid="assessment-results.retake_button"
-        >
-          <Link to="/assessment">
-            <RefreshCw size={14} />
-            Take New Assessment
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button
+            asChild
+            variant="outline"
+            className="gap-2 border-primary/30 text-primary hover:bg-primary/5 w-full sm:w-auto"
+            data-ocid="assessment-results.full_report_button"
+          >
+            <Link to="/candidate/report/$id" params={{ id }}>
+              <FileText size={14} />
+              View Full Report
+            </Link>
+          </Button>
+          <Button
+            asChild
+            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+            data-ocid="assessment-results.retake_button"
+          >
+            <Link to="/assessment">
+              <RefreshCw size={14} />
+              Take New Assessment
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

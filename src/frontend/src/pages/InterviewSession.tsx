@@ -44,6 +44,7 @@ import {
   Send,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Trophy,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -134,6 +135,7 @@ interface CameraPanelProps {
   onEnable: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  snapshotCount: number;
 }
 
 function CameraPanel({
@@ -145,12 +147,13 @@ function CameraPanel({
   onEnable,
   collapsed,
   onToggleCollapse,
+  snapshotCount,
 }: CameraPanelProps) {
   return (
     <div
       className={cn(
         "fixed top-[5rem] right-4 z-40 rounded-xl overflow-hidden shadow-lg border border-border/60 bg-card transition-all duration-300",
-        collapsed ? "w-10 h-10" : "w-[200px]",
+        collapsed ? "w-10 h-10" : "w-[280px]",
       )}
     >
       {collapsed ? (
@@ -179,20 +182,27 @@ function CameraPanel({
                 {isActive ? "Proctored" : "Camera"}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Collapse camera panel"
-            >
-              <MinimizeIcon size={10} />
-            </button>
+            <div className="flex items-center gap-1">
+              {snapshotCount > 0 && (
+                <span className="text-[9px] bg-warning/20 text-warning rounded-full px-1.5 py-0.5 font-semibold">
+                  {snapshotCount} snap
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Collapse camera panel"
+              >
+                <MinimizeIcon size={10} />
+              </button>
+            </div>
           </div>
 
           {/* Video area */}
           <div
             className="relative bg-zinc-900"
-            style={{ width: 200, height: 150 }}
+            style={{ width: 280, height: 210 }}
           >
             <video
               ref={videoRef}
@@ -378,6 +388,7 @@ interface ProctoringStatusBarProps {
   cameraPermissionDenied: boolean;
   screenShareActive: boolean;
   violations: number;
+  snapshotCount: number;
 }
 
 function ProctoringStatusBar({
@@ -385,6 +396,7 @@ function ProctoringStatusBar({
   cameraPermissionDenied,
   screenShareActive,
   violations,
+  snapshotCount,
 }: ProctoringStatusBarProps) {
   return (
     <div
@@ -445,6 +457,12 @@ function ProctoringStatusBar({
       >
         <ShieldAlert size={10} />
         Violations: {violations}
+      </div>
+
+      {/* Snapshots pill */}
+      <div className="flex items-center gap-1 rounded-full px-2 py-1 text-xs border bg-muted text-muted-foreground border-border/40">
+        <Camera size={10} />
+        Snapshots: {snapshotCount}
       </div>
     </div>
   );
@@ -1124,6 +1142,7 @@ export function InterviewSession() {
           onEnable={() => void camera.startCamera()}
           collapsed={cameraCollapsed}
           onToggleCollapse={() => setCameraCollapsed((p) => !p)}
+          snapshotCount={snapshots.length}
         />
       )}
 
@@ -1257,6 +1276,7 @@ export function InterviewSession() {
         cameraPermissionDenied={permissionDenied}
         screenShareActive={screenShare.isActive}
         violations={violations}
+        snapshotCount={snapshots.length}
       />
 
       {/* Anti-cheat persistent alert for 3+ violations */}
@@ -1349,7 +1369,7 @@ export function InterviewSession() {
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span className="text-xs text-muted-foreground font-medium">
                         Q{currentQuestionIdx + 1} of {sessionQuestions.length}
                       </span>
@@ -1359,6 +1379,13 @@ export function InterviewSession() {
                         className="text-xs border-border/60"
                       >
                         {currentQ.category}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-primary/20 text-primary bg-primary/5 gap-1"
+                      >
+                        <Sparkles size={9} />
+                        AI Selected
                       </Badge>
                     </div>
                     <CardTitle className="font-display text-lg">
@@ -1374,11 +1401,9 @@ export function InterviewSession() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p className="text-sm text-foreground/90 leading-relaxed">
-                    {currentQ.description}
-                  </p>
-                </div>
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  {currentQ.description}
+                </p>
 
                 {currentQ.tags.length > 0 && (
                   <div className="flex gap-1.5 flex-wrap mt-4">

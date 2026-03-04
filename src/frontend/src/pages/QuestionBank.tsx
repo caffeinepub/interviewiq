@@ -191,6 +191,87 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
       "answer-guide",
     ],
   },
+  // ── DSA Questions ──────────────────────────────────────────────
+  {
+    title: "Reverse a Linked List",
+    description:
+      "Reverse the order of nodes in a singly linked list. This problem tests your understanding of pointers and iterative/recursive thinking.\n\nAnswer: An iterative approach involves traversing the list and changing the next pointer of each node to point to its previous node. Use three pointers — prev, current, and next — updating them in each iteration.\n\nCode Example (C++):\nvoid reverseList(Node** head) {\n    Node *prev = NULL, *current = *head, *next = NULL;\n    while (current) {\n        next = current->next;\n        current->next = prev;\n        prev = current;\n        current = next;\n    }\n    *head = prev;\n}\n\nTime Complexity: O(n). Space Complexity: O(1). You can also solve this recursively but iterative is preferred for interviews due to O(1) space.",
+    category: "Data Structures",
+    difficulty: Difficulty.easy,
+    tags: ["linked-list", "pointers", "iterative", "DSA"],
+  },
+  {
+    title: "Implement a Stack Using an Array",
+    description:
+      "Design a stack data structure using a fixed-size array, implementing push and pop operations.\n\nAnswer: A stack is a LIFO (Last In, First Out) structure. An array implementation uses a 'top' variable to track the index of the last inserted element (initialized to -1 for empty).\n\nCode Example (Java):\npublic class Stack {\n    private int[] arr;\n    private int top;\n    public Stack(int size) {\n        arr = new int[size];\n        top = -1;\n    }\n    public void push(int val) { arr[++top] = val; }\n    public int pop() { return arr[top--]; }\n    public boolean isEmpty() { return top == -1; }\n}\n\nKey points: push increments top then inserts; pop reads then decrements top. Always check for overflow (push on full stack) and underflow (pop on empty stack) in your implementation.",
+    category: "Data Structures",
+    difficulty: Difficulty.easy,
+    tags: ["stack", "array", "LIFO", "DSA"],
+  },
+  {
+    title: "Find the Maximum Subarray Sum (Kadane's Algorithm)",
+    description:
+      "Find the contiguous subarray within an array that has the largest sum.\n\nAnswer: Kadane's algorithm efficiently finds the maximum subarray sum in O(n) time by keeping track of the maximum sum ending at the current position.\n\nCode Example (Python):\ndef maxSubarraySum(arr):\n    max_so_far = arr[0]\n    current_max = arr[0]\n    for i in range(1, len(arr)):\n        current_max = max(arr[i], current_max + arr[i])\n        max_so_far = max(max_so_far, current_max)\n    return max_so_far\n\nKey insight: At each element, decide whether to extend the existing subarray or start a new one. current_max = max(arr[i], current_max + arr[i]). Time Complexity: O(n). Space Complexity: O(1).",
+    category: "Algorithms",
+    difficulty: Difficulty.medium,
+    tags: ["dynamic-programming", "array", "Kadane", "DSA"],
+  },
+  // ── Process Synchronization Questions ─────────────────────────
+  {
+    title: "What is a Deadlock?",
+    description:
+      "Explain the concept of a deadlock in an operating system.\n\nAnswer: A deadlock is a state where two or more processes are blocked indefinitely, each waiting for a resource held by another process. None of the processes can proceed because each is waiting for the other to release its resource.\n\nExample: Process A holds Resource 1 and waits for Resource 2. Process B holds Resource 2 and waits for Resource 1. Neither can continue — this is a deadlock.\n\nDeadlock prevention strategies: (1) Remove one of the four necessary conditions; (2) Use resource ordering to prevent circular wait; (3) Use Banker's Algorithm for deadlock avoidance.",
+    category: "Operating Systems",
+    difficulty: Difficulty.easy,
+    tags: ["deadlock", "process-synchronization", "OS", "concurrency"],
+  },
+  {
+    title: "What Are the Four Conditions for a Deadlock?",
+    description:
+      "List and explain the four necessary conditions for a deadlock to occur.\n\nAnswer: All four conditions must hold simultaneously for a deadlock to occur:\n\n1. Mutual Exclusion: At least one resource must be held in a non-sharable mode — only one process can use it at a time.\n\n2. Hold and Wait: A process holding at least one resource is waiting to acquire additional resources held by other processes.\n\n3. No Preemption: Resources cannot be forcibly taken from a process — they can only be released voluntarily by the holding process.\n\n4. Circular Wait: A set of processes {P1, P2, ..., Pn} exists such that P1 waits for P2, P2 waits for P3, ..., and Pn waits for P1.\n\nRemoving any one of these conditions prevents deadlock.",
+    category: "Operating Systems",
+    difficulty: Difficulty.medium,
+    tags: [
+      "deadlock",
+      "mutual-exclusion",
+      "circular-wait",
+      "process-synchronization",
+      "OS",
+    ],
+  },
+  {
+    title: "Differentiate Between an Exclusive Lock and a Shared Lock",
+    description:
+      "Explain the difference between shared locks and exclusive locks in database and OS concurrency.\n\nAnswer:\n\nShared Lock (S-lock / Read Lock):\n- Multiple transactions or processes can hold a shared lock on the same resource simultaneously.\n- Allows concurrent reads but prevents writes.\n- Used when a process only needs to read data.\n\nExclusive Lock (X-lock / Write Lock):\n- Only one transaction or process can hold an exclusive lock on a resource at a time.\n- Blocks both reads and writes from other processes.\n- Used when a process needs to read and write (modify) data.\n\nCompatibility: Two shared locks are compatible (both can be granted). A shared lock and an exclusive lock, or two exclusive locks, are incompatible.",
+    category: "Operating Systems",
+    difficulty: Difficulty.medium,
+    tags: ["locks", "shared-lock", "exclusive-lock", "concurrency", "DBMS"],
+  },
+  // ── DBMS Questions ─────────────────────────────────────────────
+  {
+    title: "What is Normalization in DBMS?",
+    description:
+      "Explain the purpose and concept of database normalization.\n\nAnswer: Normalization is the process of organizing a relational database to reduce redundancy and improve data integrity. It involves decomposing tables into smaller, well-structured tables and defining relationships between them.\n\nNormal Forms:\n- 1NF (First Normal Form): Eliminate repeating groups; each column must have atomic values.\n- 2NF: Remove partial dependencies; all non-key attributes must depend on the full primary key.\n- 3NF: Remove transitive dependencies; non-key attributes must depend only on the primary key.\n- BCNF (Boyce-Codd Normal Form): A stricter version of 3NF.\n\nBenefits: Reduces data redundancy, minimizes update anomalies (insert, update, delete anomalies), and improves data consistency.",
+    category: "Database",
+    difficulty: Difficulty.medium,
+    tags: ["normalization", "DBMS", "database-design", "1NF", "3NF"],
+  },
+  {
+    title: "What Are the ACID Properties?",
+    description:
+      "Define the ACID properties for database transaction processing.\n\nAnswer: ACID stands for Atomicity, Consistency, Isolation, and Durability — four properties that guarantee reliable database transactions:\n\n1. Atomicity: A transaction is treated as a single unit — either all operations succeed or none do. If any part fails, the entire transaction is rolled back.\n\n2. Consistency: A transaction brings the database from one valid state to another. All data integrity rules and constraints must be satisfied before and after the transaction.\n\n3. Isolation: Concurrent transactions execute as if they were serial — the intermediate state of a transaction is not visible to other transactions. Prevents dirty reads, phantom reads, and non-repeatable reads.\n\n4. Durability: Once a transaction is committed, it remains committed even in the event of system failure. Changes are persisted to non-volatile storage.\n\nThese properties are essential for maintaining data integrity in multi-user database environments.",
+    category: "Database",
+    difficulty: Difficulty.medium,
+    tags: ["ACID", "transactions", "DBMS", "atomicity", "consistency"],
+  },
+  {
+    title: "How Do You Create an Index on a Table in SQL?",
+    description:
+      "Explain what a database index is and provide the SQL syntax to create one.\n\nAnswer: An index is a database object that speeds up data retrieval by creating a separate data structure (typically a B-tree) that allows faster lookups on specific columns — similar to a book's index.\n\nSQL Syntax:\nCREATE INDEX index_name\nON table_name (column1, column2, ...);\n\nExample:\nCREATE INDEX idx_employee_lastname\nON employees (last_name);\n\nUnique Index:\nCREATE UNIQUE INDEX idx_email ON users (email);\n\nTrade-offs:\n- Pros: Significantly speeds up SELECT queries, WHERE filters, and JOIN conditions on indexed columns.\n- Cons: Slows down INSERT, UPDATE, and DELETE operations (index must be updated); uses additional storage space.\n\nBest practice: Index columns that are frequently used in WHERE clauses, JOIN conditions, or ORDER BY expressions.",
+    category: "Database",
+    difficulty: Difficulty.easy,
+    tags: ["SQL", "index", "DBMS", "performance", "B-tree"],
+  },
 ];
 
 interface QuestionFormData {

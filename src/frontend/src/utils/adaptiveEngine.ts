@@ -13,60 +13,141 @@ export interface AdaptiveScore {
 
 const KEYWORD_SETS = {
   behavioral: [
+    // STAR method
     "situation",
     "task",
     "action",
     "result",
+    "outcome",
     "challenge",
+    "specific",
+    // Team & resolution
     "team",
     "resolved",
-    "outcome",
+    "collaborated",
+    "conflict",
+    "communicated",
+    "led",
+    // Impact
     "learned",
     "problem",
     "solution",
     "impact",
     "improved",
     "achieved",
+    "reduced",
+    "increased",
+    "delivered",
   ],
   strength_weakness: [
+    // Self-awareness
+    "weakness",
+    "strength",
+    "improvement",
+    "growth",
+    "working on",
+    "learned",
+    // Action words
     "example",
     "skill",
     "improved",
     "developed",
-    "working on",
-    "growth",
     "better",
     "focus",
-    "strength",
-    "weakness",
+    "practicing",
+    "overcome",
+    "progress",
   ],
   career: [
-    "experience",
-    "goal",
-    "opportunity",
+    // Company/culture fit
     "company",
-    "role",
+    "mission",
+    "values",
+    "culture",
+    "contribute",
+    "align",
+    // Goals
+    "opportunity",
+    "goal",
+    "future",
     "growth",
+    "career",
+    // Experience
+    "experience",
+    "role",
     "passion",
     "value",
-    "mission",
-    "contribute",
-    "future",
-    "career",
+    "excited",
+    "motivated",
+    "long-term",
   ],
   prioritization: [
+    // Frameworks
     "prioritize",
     "urgent",
     "deadline",
+    "framework",
+    "organize",
+    // Tools
+    "calendar",
+    "tools",
+    "communicate",
+    // Methods
     "schedule",
     "plan",
-    "organize",
     "manage",
-    "calendar",
     "task",
     "list",
     "focus",
+    "triage",
+    "matrix",
+    "impact",
+  ],
+  interview: [
+    // STAR method signals
+    "situation",
+    "task",
+    "action",
+    "result",
+    "outcome",
+    "challenge",
+    "specific",
+    // Self-awareness signals
+    "weakness",
+    "strength",
+    "improvement",
+    "growth",
+    "working on",
+    "learned",
+    // Career/motivation signals
+    "company",
+    "mission",
+    "values",
+    "culture",
+    "contribute",
+    "opportunity",
+    "goal",
+    "future",
+    "align",
+    // Prioritization signals
+    "prioritize",
+    "urgent",
+    "deadline",
+    "calendar",
+    "organize",
+    "focus",
     "communicate",
+    "tools",
+    "framework",
+    // General quality signals
+    "because",
+    "therefore",
+    "specifically",
+    "example",
+    "evidence",
+    "measured",
+    "achieved",
+    "implemented",
   ],
   general: [
     "because",
@@ -82,6 +163,11 @@ const KEYWORD_SETS = {
     "developed",
     "managed",
     "led",
+    "demonstrated",
+    "evidence",
+    "outcome",
+    "approach",
+    "strategy",
   ],
 };
 
@@ -101,18 +187,44 @@ function selectKeywordSet(questionTitle: string): string[] {
   if (
     lower.includes("why") ||
     lower.includes("see yourself") ||
-    lower.includes("leaving")
+    lower.includes("leaving") ||
+    lower.includes("hire you") ||
+    lower.includes("about yourself") ||
+    lower.includes("questions for us")
   ) {
     return KEYWORD_SETS.career;
   }
   if (
     lower.includes("prioritize") ||
     lower.includes("manage") ||
-    lower.includes("organize")
+    lower.includes("organize") ||
+    lower.includes("how do you")
   ) {
     return KEYWORD_SETS.prioritization;
   }
+  // Interview-style general questions
+  if (
+    lower.includes("tell me") ||
+    lower.includes("describe") ||
+    lower.includes("explain") ||
+    lower.includes("interview")
+  ) {
+    return KEYWORD_SETS.interview;
+  }
   return KEYWORD_SETS.general;
+}
+
+/**
+ * Returns the total number of keyword matches for a given answer and question title.
+ * Useful for displaying how many domain-relevant keywords were detected.
+ */
+export function getTotalKeywordsForQuestion(
+  answerText: string,
+  questionTitle: string,
+): number {
+  const lower = answerText.toLowerCase();
+  const keywordSet = selectKeywordSet(questionTitle);
+  return keywordSet.filter((kw) => lower.includes(kw)).length;
 }
 
 // ─── Intelligent Scorer ───────────────────────────────────────────────────────

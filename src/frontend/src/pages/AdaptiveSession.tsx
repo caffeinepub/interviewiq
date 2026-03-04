@@ -1373,6 +1373,24 @@ export function AdaptiveSession() {
                       <CardTitle className="font-display text-lg leading-snug">
                         {currentQuestion.title}
                       </CardTitle>
+                      {/* Adaptive reasoning hint */}
+                      {runningScores.length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1.5">
+                          {(() => {
+                            const avg = Math.round(
+                              runningScores.reduce((a, b) => a + b, 0) /
+                                runningScores.length,
+                            );
+                            if (currentQuestion.difficulty === "hard") {
+                              return `AI targeting Hard — your avg score is ${avg}/100 (above 70)`;
+                            }
+                            if (currentQuestion.difficulty === "easy") {
+                              return `AI targeting Easy — your avg score is ${avg}/100 (below 40)`;
+                            }
+                            return `AI targeting Medium — your avg score is ${avg}/100`;
+                          })()}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardHeader>

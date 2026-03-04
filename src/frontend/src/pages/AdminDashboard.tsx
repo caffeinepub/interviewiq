@@ -300,12 +300,12 @@ export function AdminDashboard() {
             <div className="flex items-center justify-between mb-2">
               <Lightbulb className="h-5 w-5 text-muted-foreground" />
               <span className="font-display text-3xl font-bold text-success">
-                10
+                19
               </span>
             </div>
             <p className="text-sm font-medium">Answer Guide</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Classic interview question strategies
+              Interview, DSA, OS, and DBMS questions
             </p>
             <Link
               to="/interview-answers"
@@ -328,10 +328,10 @@ export function AdminDashboard() {
             </CardTitle>
           </div>
           <CardDescription>
-            Load all {seedTotal} classic interview questions from the Answer
-            Guide into the question bank with one click. Questions include full
-            descriptions, what-they-want-to-know context, and model answer
-            strategies.
+            Load all {seedTotal} questions from the Answer Guide into the
+            question bank with one click. Includes classic interview questions,
+            DSA (Linked List, Stack, Kadane's), Process Synchronization
+            (Deadlock), and DBMS (Normalization, ACID, SQL Index).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

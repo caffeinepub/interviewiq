@@ -28,6 +28,7 @@ import {
   Shuffle,
   Sparkles,
   TrendingUp,
+  Wifi,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -284,10 +285,24 @@ export function AssessmentPage() {
           <h1 className="font-display text-4xl font-bold tracking-tight mb-3 md:text-5xl">
             Assessment <span className="text-primary">Center</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed mb-8">
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed mb-4">
             Get an auto-generated set of 5 questions across mixed difficulties —
             no setup required. Just start and prove your knowledge.
           </p>
+
+          {/* Live from Question Bank badge */}
+          {!loadingQuestions && totalQuestions > 0 && (
+            <div className="flex justify-center mb-6">
+              <Badge
+                variant="outline"
+                className="border-success/30 bg-success/10 text-success gap-1.5 px-3 py-1 text-xs font-medium"
+              >
+                <Wifi size={11} />
+                {totalQuestions} question{totalQuestions !== 1 ? "s" : ""}{" "}
+                fetched live from question bank
+              </Badge>
+            </div>
+          )}
 
           {loadingQuestions ? (
             <div className="flex justify-center">
@@ -334,25 +349,30 @@ export function AssessmentPage() {
               </div>
             </div>
           ) : (
-            <Button
-              size="lg"
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow px-8"
-              onClick={handleStartAssessment}
-              disabled={isStarting}
-              data-ocid="assessment.start_button"
-            >
-              {isStarting ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Generating Assessment…
-                </>
-              ) : (
-                <>
-                  <Zap className="h-5 w-5" />
-                  Start Assessment Now
-                </>
-              )}
-            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                size="lg"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow px-8"
+                onClick={handleStartAssessment}
+                disabled={isStarting}
+                data-ocid="assessment.start_button"
+              >
+                {isStarting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Generating Assessment…
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-5 w-5" />
+                    Start Assessment Now
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground mt-1">
+                Questions are dynamically selected each time — no fixed set
+              </p>
+            </div>
           )}
         </div>
       </section>
@@ -471,7 +491,7 @@ export function AssessmentPage() {
                     By Category
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Your assessment pulls from all categories
+                    Your assessment pulls live from all categories each time
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
