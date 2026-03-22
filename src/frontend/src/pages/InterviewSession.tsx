@@ -37,6 +37,8 @@ import {
   Code,
   FileText,
   Loader2,
+  Mic,
+  MicOff,
   MinimizeIcon,
   Monitor,
   MonitorOff,
@@ -46,6 +48,7 @@ import {
   ShieldCheck,
   Sparkles,
   Trophy,
+  Volume2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -61,6 +64,8 @@ import {
   useSubmitAnswer,
   useSubmitSession,
 } from "../hooks/useQueries";
+import { useSpeech } from "../hooks/useSpeech";
+import { generateFollowUpQuestion } from "../utils/generativeEngine";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -504,6 +509,15 @@ export function InterviewSession() {
   // ── Code editor state ──
   const [showCodeMode, setShowCodeMode] = useState(false);
   const [codeLanguage, setCodeLanguage] = useState<CodeLanguage>("javascript");
+  const [verbalMode] = useState(
+    () => sessionStorage.getItem("verbalMode") === "1",
+  );
+  const [followUpCard, setFollowUpCard] = useState<{
+    question: string;
+    answer: string;
+  } | null>(null);
+  const [followUpAnswer, setFollowUpAnswer] = useState("");
+  const speech = useSpeech();
 
   // ── Camera proctoring state ──
   const camera = useCamera({ facingMode: "user", width: 320, height: 240 });
@@ -657,6 +671,34 @@ export function InterviewSession() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [violations, session?.status]);
 
+  // ── Auto-speak question when verbalMode is on ──
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+  useEffect(() => {
+    if (verbalMode && speech.isSupported && isInProgress) {
+      const currentQ = sessionQuestions[currentQuestionIdx];
+      if (currentQ) {
+        speech.speak(`${currentQ.title}. ${currentQ.description}`);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestionIdx, isInProgress]);
+
+  // ── Sync speech transcript to answer textarea ──
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+  useEffect(() => {
+    if (speech.transcript && speech.isListening) {
+      const currentQ = sessionQuestions[currentQuestionIdx];
+      if (!currentQ) return;
+      const qId = currentQ.id.toString();
+      if (followUpCard) {
+        setFollowUpAnswer(speech.transcript);
+      } else {
+        setAnswers((prev) => ({ ...prev, [qId]: speech.transcript }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speech.transcript]);
+
   // ── Keep refs stable for snapshot interval ──
   const cameraVideoRef = camera.videoRef;
   const cameraCanvasRef = camera.canvasRef;
@@ -801,14 +843,41 @@ export function InterviewSession() {
       setSubmittedAnswers((prev) => new Set([...prev, qId]));
       toast.success("Answer submitted!");
 
-      if (currentQuestionIdx < sessionQuestions.length - 1) {
-        setCurrentQuestionIdx((prev) => prev + 1);
-        questionStartRef.current = Date.now();
-        setQuestionStartTime(Date.now());
-      }
+      // Show AI follow-up card
+      const followUp = generateFollowUpQuestion(currentQ, answerText);
+      setFollowUpCard({ question: followUp, answer: "" });
+      setFollowUpAnswer("");
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit answer. Please try again.");
+    }
+  };
+
+  const handleFollowUpDone = () => {
+    setFollowUpCard(null);
+    setFollowUpAnswer("");
+    if (currentQuestionIdx < sessionQuestions.length - 1) {
+      setCurrentQuestionIdx((prev) => prev + 1);
+      questionStartRef.current = Date.now();
+      setQuestionStartTime(Date.now());
+    }
+  };
+
+  const handleToggleMic = () => {
+    if (speech.isListening) {
+      speech.stopListening();
+    } else {
+      speech.clearTranscript();
+      speech.startListening();
+    }
+  };
+
+  const handleToggleFollowUpMic = () => {
+    if (speech.isListening) {
+      speech.stopListening();
+    } else {
+      speech.clearTranscript();
+      speech.startListening();
     }
   };
 
@@ -1388,9 +1457,32 @@ export function InterviewSession() {
                         AI Selected
                       </Badge>
                     </div>
-                    <CardTitle className="font-display text-lg">
-                      {currentQ.title}
-                    </CardTitle>
+                    <div className="flex items-start gap-2">
+                      <CardTitle className="font-display text-lg flex-1">
+                        {currentQ.title}
+                      </CardTitle>
+                      {speech.isSupported && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            speech.isSpeaking
+                              ? speech.stopSpeaking()
+                              : speech.speak(
+                                  `${currentQ.title}. ${currentQ.description}`,
+                                )
+                          }
+                          className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+                          title={
+                            speech.isSpeaking
+                              ? "Stop reading"
+                              : "Read question aloud"
+                          }
+                          data-ocid="session.speak_question_button"
+                        >
+                          <Volume2 size={12} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {currentQId && submittedAnswers.has(currentQId) && (
                     <Badge className="bg-success/10 text-success border-success/30 shrink-0">
@@ -1545,12 +1637,34 @@ export function InterviewSession() {
                   />
                 )}
 
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    {currentQId && answers[currentQId]
-                      ? `${answers[currentQId].length} characters`
-                      : "Start typing your answer"}
-                  </p>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      {currentQId && answers[currentQId]
+                        ? `${answers[currentQId].length} characters`
+                        : "Start typing your answer"}
+                    </p>
+                    {speech.isSupported &&
+                      !(currentQId && submittedAnswers.has(currentQId)) && (
+                        <button
+                          type="button"
+                          onClick={handleToggleMic}
+                          className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs transition-all ${speech.isListening ? "animate-pulse border-red-500 bg-red-500/10 text-red-500" : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary"}`}
+                          title={
+                            speech.isListening
+                              ? "Stop recording"
+                              : "Speak your answer"
+                          }
+                          data-ocid="session.mic_button"
+                        >
+                          {speech.isListening ? (
+                            <MicOff size={12} />
+                          ) : (
+                            <Mic size={12} />
+                          )}
+                        </button>
+                      )}
+                  </div>
                   <Button
                     onClick={handleSubmitAnswer}
                     disabled={
@@ -1580,6 +1694,80 @@ export function InterviewSession() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* AI Follow-up Card */}
+            {followUpCard && (
+              <div
+                className="rounded-xl border-2 border-violet-500/30 bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-transparent p-5 relative"
+                data-ocid="session.followup_card"
+              >
+                <div className="absolute top-3 right-3">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 border border-violet-500/30 px-2 py-0.5 text-[10px] font-medium text-violet-400">
+                    <Sparkles size={9} />
+                    AI Follow-up
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles size={14} className="text-violet-400 shrink-0" />
+                  <p className="text-xs font-semibold text-violet-300 uppercase tracking-wide">
+                    AI Follow-up Question
+                  </p>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed mb-4">
+                  {followUpCard.question}
+                </p>
+                <div className="space-y-3">
+                  <div className="relative">
+                    <textarea
+                      value={followUpAnswer}
+                      onChange={(e) => setFollowUpAnswer(e.target.value)}
+                      placeholder="Optional: reflect on this follow-up..."
+                      className="w-full min-h-[80px] resize-none rounded-lg border border-border/60 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-violet-500/50 focus:outline-none"
+                      data-ocid="session.followup_textarea"
+                    />
+                    {speech.isSupported && (
+                      <button
+                        type="button"
+                        onClick={handleToggleFollowUpMic}
+                        className={`absolute bottom-2 right-2 flex h-6 w-6 items-center justify-center rounded-full border text-xs transition-all ${speech.isListening ? "animate-pulse border-red-500 bg-red-500/10 text-red-500" : "border-border/60 text-muted-foreground hover:border-violet-500/40 hover:text-violet-400"}`}
+                        title={
+                          speech.isListening
+                            ? "Stop recording"
+                            : "Speak your follow-up"
+                        }
+                        data-ocid="session.followup_mic_button"
+                      >
+                        {speech.isListening ? (
+                          <MicOff size={10} />
+                        ) : (
+                          <Mic size={10} />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleFollowUpDone}
+                      className="text-xs border-border/60 h-7"
+                      data-ocid="session.followup_skip_button"
+                    >
+                      Skip
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleFollowUpDone}
+                      className="text-xs bg-violet-600 hover:bg-violet-700 text-white h-7 gap-1"
+                      data-ocid="session.followup_submit_button"
+                    >
+                      <CheckCircle2 size={11} />
+                      Submit Follow-up
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="flex items-center justify-between">

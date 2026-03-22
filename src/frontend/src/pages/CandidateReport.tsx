@@ -13,6 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useParams } from "@tanstack/react-router";
@@ -27,6 +28,7 @@ import {
   Clock,
   Copy,
   FileText,
+  GraduationCap,
   MessageSquare,
   Monitor,
   Printer,
@@ -507,6 +509,99 @@ export function CandidateReport() {
           </Card>
         </div>
       )}
+
+      {/* Skill Assessment Results */}
+      {(() => {
+        let mcqResults: {
+          subject: string;
+          score: number;
+          total: number;
+          completedAt: number;
+        }[] = [];
+        try {
+          mcqResults = JSON.parse(
+            localStorage.getItem("interviewiq_mcq_results") || "[]",
+          );
+        } catch {
+          mcqResults = [];
+        }
+        return (
+          <Card
+            className="border-border/60"
+            data-ocid="candidate-report.skill_assessment_card"
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-base flex items-center gap-2">
+                <GraduationCap size={16} className="text-primary" />
+                Skill Assessment Results
+              </CardTitle>
+              <CardDescription>
+                MCQ scores from resume-based skill assessments
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {mcqResults.length === 0 ? (
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-ocid="candidate-report.skill_assessment_card.empty_state"
+                >
+                  No skill assessment completed. Visit the Student Dashboard to
+                  take subject-specific MCQ assessments.
+                </p>
+              ) : (
+                <div
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                  data-ocid="candidate-report.skill_assessment_card.list"
+                >
+                  {mcqResults.map((result, idx) => {
+                    const pct = Math.round((result.score / result.total) * 100);
+                    const color =
+                      pct >= 80
+                        ? "text-success"
+                        : pct >= 60
+                          ? "text-warning"
+                          : "text-destructive";
+                    const barColor =
+                      pct >= 80
+                        ? "bg-success"
+                        : pct >= 60
+                          ? "bg-warning"
+                          : "bg-destructive";
+                    return (
+                      <div
+                        key={result.subject}
+                        className="rounded-lg border border-border/60 p-4 space-y-2"
+                        data-ocid={`candidate-report.skill_assessment_card.item.${idx + 1}`}
+                      >
+                        <p className="font-semibold text-sm">
+                          {result.subject}
+                        </p>
+                        <p
+                          className={`text-xl font-bold font-display ${color}`}
+                        >
+                          {result.score} / {result.total} correct
+                        </p>
+                        <Progress
+                          value={pct}
+                          className={`h-2 [&>div]:${barColor}`}
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className={`text-sm font-medium ${color}`}>
+                            {pct}%
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(result.completedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Camera Integrity Section */}
       {proctoring && (

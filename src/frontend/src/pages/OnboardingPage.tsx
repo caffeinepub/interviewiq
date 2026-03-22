@@ -20,13 +20,13 @@ import { useNavigate } from "@tanstack/react-router";
 import { BrainCircuit, CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useCreateCandidateProfile,
   useGetCallerUserProfile,
   useIsCallerAdmin,
   useSaveCallerUserProfile,
-  useSelfRegisterAsUser,
 } from "../hooks/useQueries";
 
 const roles = [
@@ -52,11 +52,11 @@ const experienceLevels = [
 export function OnboardingPage() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
+  const { actor } = useActor();
   const { data: isAdmin, isLoading: checkingAdmin } = useIsCallerAdmin();
   const { data: existingProfile, isLoading: checkingProfile } =
     useGetCallerUserProfile();
 
-  const selfRegister = useSelfRegisterAsUser();
   const createCandidate = useCreateCandidateProfile();
   const saveProfile = useSaveCallerUserProfile();
 
@@ -67,6 +67,7 @@ export function OnboardingPage() {
     experienceLevel: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saveError, setSaveError] = useState("");
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -87,37 +88,46 @@ export function OnboardingPage() {
       return;
     }
     setErrors({});
+    setSaveError("");
 
     try {
-      // Step 1: Ensure the caller is registered as a user before saving any profile data.
-      // Without this, createCandidateProfile and saveCallerUserProfile will trap ("Unauthorized").
-      try {
-        await selfRegister.mutateAsync();
-      } catch {
-        // already registered — safe to continue
+      // Step 1: Ensure the caller is registered. The backend now auto-registers
+      // inside saveCallerUserProfile and createCandidateProfile, but we still
+      // call selfRegisterAsUser explicitly for safety.
+      if (actor) {
+        try {
+          await actor.selfRegisterAsUser();
+        } catch {
+          // already registered — safe to continue
+        }
       }
 
-      // Step 2: Wait briefly for canister state to settle
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Step 2: Wait for canister state to settle after registration
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-      // Step 3: Save both profiles in parallel
-      await Promise.all([
-        createCandidate.mutateAsync(form),
-        saveProfile.mutateAsync({ name: form.name }),
-      ]);
-      toast.success("Profile created! Welcome to InterviewIQ.");
+      // Step 3: Save user profile (name only)
+      await saveProfile.mutateAsync({ name: form.name });
+
+      // Step 4: Save full candidate profile
+      await createCandidate.mutateAsync(form);
+
+      toast.success("Profile saved! Welcome to InterviewIQ.");
       await navigate({ to: "/candidate" });
     } catch (err) {
-      toast.error("Failed to create profile. Please try again.");
+      const message = err instanceof Error ? err.message : String(err);
+      const friendly = message.includes("Unauthorized")
+        ? "Authorization failed. Please sign out, sign back in, and try again."
+        : message.includes("network") || message.includes("fetch")
+          ? "Network error. Check your connection and try again."
+          : "Failed to save profile. Please try again.";
+      setSaveError(friendly);
+      toast.error(friendly);
       console.error(err);
     }
   };
 
   const isLoading = checkingAdmin || checkingProfile;
-  const isPending =
-    selfRegister.isPending ||
-    createCandidate.isPending ||
-    saveProfile.isPending;
+  const isPending = createCandidate.isPending || saveProfile.isPending;
 
   if (!identity) {
     return (
@@ -336,11 +346,9 @@ export function OnboardingPage() {
                 )}
               </div>
 
-              {(createCandidate.isError || saveProfile.isError) && (
+              {saveError && (
                 <Alert variant="destructive" data-ocid="onboarding.error_state">
-                  <AlertDescription>
-                    Failed to save profile. Please try again.
-                  </AlertDescription>
+                  <AlertDescription>{saveError}</AlertDescription>
                 </Alert>
               )}
 
@@ -353,7 +361,7 @@ export function OnboardingPage() {
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating profile…
+                    Saving profile…
                   </>
                 ) : (
                   "Complete Setup"

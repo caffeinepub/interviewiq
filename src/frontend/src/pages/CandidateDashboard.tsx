@@ -17,13 +17,13 @@ import {
   BrainCircuit,
   ChevronRight,
   Clock,
+  GraduationCap,
   PlayCircle,
   Target,
   TrendingUp,
   Trophy,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
 import { InterviewStatus } from "../backend.d";
 import { StatusBadge } from "../components/StatusBadge";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -326,7 +326,7 @@ export function CandidateDashboard() {
       </Card>
 
       {/* Quick Links */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card
           className="border-border/60 hover:border-primary/30 transition-colors group cursor-pointer border-primary/20 bg-primary/5"
           data-ocid="candidate.assessment_card"
@@ -342,6 +342,31 @@ export function CandidateDashboard() {
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Auto-generated · 5 questions · 30 min
+                </p>
+              </div>
+              <ArrowRight
+                size={16}
+                className="text-muted-foreground group-hover:text-primary transition-colors"
+              />
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="border-border/60 hover:border-primary/30 transition-colors group cursor-pointer"
+          data-ocid="candidate.student_dashboard_card"
+        >
+          <CardContent className="p-6">
+            <Link to="/student-dashboard" className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+                <GraduationCap size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-sm">
+                  Resume & Learning
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Upload resume · Study notes · MCQ quiz
                 </p>
               </div>
               <ArrowRight

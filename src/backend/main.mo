@@ -8,8 +8,10 @@ import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -55,6 +57,13 @@ actor {
     email : Text;
     targetRole : Text;
     experienceLevel : Text;
+    extractedSkills : [Text];
+    resumeText : Text;
+  };
+
+  type SkillsAndResume = {
+    skills : [Text];
+    resumeText : Text;
   };
 
   type UserProfile = {
@@ -131,9 +140,10 @@ actor {
     accessControlState.adminAssigned;
   };
 
+  // Allow any authenticated caller to read/write their own profile
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous users cannot access profiles");
     };
     userProfiles.get(caller);
   };
@@ -146,8 +156,15 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous users cannot save profiles");
+    };
+    // Auto-register as user if not yet registered (handles first-time saves)
+    switch (accessControlState.userRoles.get(caller)) {
+      case (null) {
+        accessControlState.userRoles.add(caller, #user);
+      };
+      case (?_) { () };
     };
     userProfiles.add(caller, profile);
   };
@@ -201,23 +218,98 @@ actor {
     questions.values().toArray();
   };
 
-  public shared ({ caller }) func createCandidateProfile(name : Text, email : Text, targetRole : Text, experienceLevel : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create candidate profiles");
-    };
+  public query ({ caller }) func getFilteredQuestions(category : ?Text, difficulty : ?Difficulty, search : ?Text) : async [Question] {
+    let filtered = questions.values().filter(func(q) {
+      (switch (category) {
+        case (null) { true };
+        case (?cat) { Text.equal(q.category, cat) };
+      }) and (switch (difficulty) {
+        case (null) { true };
+        case (?diff) { q.difficulty == diff };
+      }) and (switch (search) {
+        case (null) { true };
+        case (?s) {
+          let searchText = s.toLower();
+          q.title.toLower().contains(#text searchText) or q.description.toLower().contains(#text searchText) or q.category.toLower().contains(#text searchText);
+        };
+      });
+    });
+    filtered.toArray();
+  };
 
+  public shared ({ caller }) func createCandidateProfile(name : Text, email : Text, targetRole : Text, experienceLevel : Text) : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous users cannot create candidate profiles");
+    };
+    // Auto-register if not yet registered
+    switch (accessControlState.userRoles.get(caller)) {
+      case (null) {
+        accessControlState.userRoles.add(caller, #user);
+      };
+      case (?_) { () };
+    };
     let profile : CandidateProfile = {
       name;
       email;
       targetRole;
       experienceLevel;
+      extractedSkills = [];
+      resumeText = "";
     };
     candidateProfiles.add(caller, profile);
   };
 
+  public shared ({ caller }) func saveResumeSkills(skills : [Text], resumeText : Text) : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous users cannot save resume skills");
+    };
+
+    let currentProfile = switch (candidateProfiles.get(caller)) {
+      case (null) {
+        {
+          name = "";
+          email = "";
+          targetRole = "";
+          experienceLevel = "";
+          extractedSkills = skills;
+          resumeText;
+        };
+      };
+      case (?existing) { { existing with extractedSkills = skills; resumeText } };
+    };
+
+    candidateProfiles.add(caller, currentProfile);
+  };
+
+  public query ({ caller }) func getResumeSkills(candidate : Principal) : async ?SkillsAndResume {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous users cannot view resume skills");
+    };
+    if (caller != candidate and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own resume skills");
+    };
+
+    switch (candidateProfiles.get(candidate)) {
+      case (null) { null };
+      case (?profile) {
+        ?{
+          skills = profile.extractedSkills;
+          resumeText = profile.resumeText;
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func getResumeSkillsDeprecated(candidate : Principal) : async ([Text], Text) {
+    switch (candidateProfiles.get(candidate)) {
+      case (null) { Runtime.trap("No skills found in backend") };
+      case (?candidate) { (candidate.extractedSkills, candidate.resumeText) };
+    };
+  };
+
   public query ({ caller }) func getCandidateProfile(candidate : Principal) : async ?CandidateProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view candidate profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous users cannot view candidate profiles");
     };
     if (caller != candidate and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own candidate profile");
@@ -583,8 +675,8 @@ actor {
   };
 
   public shared ({ caller }) func scoreMockAnswer(sessionId : Nat, questionId : Nat, score : Nat, feedback : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can score mock interviews");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot score mock interviews");
     };
 
     let sessionData = switch (interviewSessions.get(sessionId)) {

@@ -20,6 +20,7 @@ import {
   ListChecks,
   Loader2,
   LogIn,
+  Mic,
   Sparkles,
   TrendingUp,
   Wifi,
@@ -147,6 +148,7 @@ export function AdaptiveAssessmentPage() {
   const createMockInterview = useCreateMockInterview();
 
   const [isStarting, setIsStarting] = useState(false);
+  const [verbalMode, setVerbalMode] = useState(false);
 
   const totalQuestions = questions?.length ?? 0;
   const canStart = totalQuestions >= 1;
@@ -185,6 +187,7 @@ export function AdaptiveAssessmentPage() {
         timeLimitMinutes: BigInt(45),
       });
 
+      sessionStorage.setItem("verbalMode", verbalMode ? "1" : "0");
       toast.success("Adaptive session created! Starting...");
       void navigate({
         to: "/adaptive-session/$id",
@@ -331,25 +334,50 @@ export function AdaptiveAssessmentPage() {
               </Button>
             </div>
           ) : (
-            <Button
-              size="lg"
-              className="gap-2.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow px-10 h-12 text-base"
-              onClick={handleStartAdaptive}
-              disabled={isStarting}
-              data-ocid="adaptive-assessment.start_button"
-            >
-              {isStarting ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Generating Adaptive Session…
-                </>
-              ) : (
-                <>
-                  <Zap className="h-5 w-5" />
-                  Start Adaptive Assessment
-                </>
-              )}
-            </Button>
+            <div className="flex flex-col items-center gap-4">
+              {/* Verbal Mode Toggle */}
+              <button
+                type="button"
+                onClick={() => setVerbalMode((v) => !v)}
+                className={`flex items-center gap-3 rounded-xl border px-5 py-3 text-sm transition-all text-left ${verbalMode ? "border-primary/50 bg-primary/10 text-primary" : "border-border/60 bg-muted/20 text-muted-foreground hover:border-primary/30 hover:bg-primary/5"}`}
+                data-ocid="adaptive-assessment.verbal_mode_toggle"
+              >
+                <Mic
+                  size={16}
+                  className={
+                    verbalMode ? "text-primary" : "text-muted-foreground"
+                  }
+                />
+                <div className="text-left">
+                  <p className="font-medium text-xs">
+                    {verbalMode ? "Verbal Mode On" : "Enable Verbal Mode"}
+                  </p>
+                  <p className="text-[11px] opacity-70">
+                    Answer questions by speaking. Questions read aloud
+                    automatically.
+                  </p>
+                </div>
+              </button>
+              <Button
+                size="lg"
+                className="gap-2.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow px-10 h-12 text-base"
+                onClick={handleStartAdaptive}
+                disabled={isStarting}
+                data-ocid="adaptive-assessment.start_button"
+              >
+                {isStarting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Generating Adaptive Session…
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-5 w-5" />
+                    Start Adaptive Assessment
+                  </>
+                )}
+              </Button>
+            </div>
           )}
 
           {canStart && !loadingQuestions && (

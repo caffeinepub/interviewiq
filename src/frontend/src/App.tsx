@@ -5,7 +5,6 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
 } from "@tanstack/react-router";
 import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
@@ -26,6 +25,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { MockInterviewSetup } from "./pages/MockInterviewSetup";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { QuestionBank } from "./pages/QuestionBank";
+import { StudentDashboard } from "./pages/StudentDashboard";
 
 // Root layout
 const rootRoute = createRootRoute({
@@ -144,6 +144,12 @@ const candidateReportRoute = createRoute({
   component: CandidateReport,
 });
 
+const studentDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/student-dashboard",
+  component: StudentDashboard,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -163,6 +169,7 @@ const routeTree = rootRoute.addChildren([
   adaptiveAssessmentRoute,
   adaptiveSessionRoute,
   candidateReportRoute,
+  studentDashboardRoute,
 ]);
 
 const router = createRouter({ routeTree });

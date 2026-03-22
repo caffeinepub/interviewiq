@@ -8,6 +8,10 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export type Time = bigint;
+export interface SkillsAndResume {
+    resumeText: string;
+    skills: Array<string>;
+}
 export interface AnswerSubmission {
     feedback?: string;
     score?: bigint;
@@ -33,6 +37,8 @@ export interface CandidateProfile {
     experienceLevel: string;
     name: string;
     email: string;
+    resumeText: string;
+    extractedSkills: Array<string>;
     targetRole: string;
 }
 export interface Question {
@@ -77,11 +83,15 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCandidateProfile(candidate: Principal): Promise<CandidateProfile | null>;
+    getFilteredQuestions(category: string | null, difficulty: Difficulty | null, search: string | null): Promise<Array<Question>>;
+    getResumeSkills(candidate: Principal): Promise<SkillsAndResume | null>;
+    getResumeSkillsDeprecated(candidate: Principal): Promise<[Array<string>, string]>;
     getSession(sessionId: bigint): Promise<InterviewSession | null>;
     getSessionAnswers(sessionId: bigint): Promise<Array<AnswerSubmission>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveResumeSkills(skills: Array<string>, resumeText: string): Promise<void>;
     scoreAnswer(sessionId: bigint, questionId: bigint, score: bigint, feedback: string): Promise<void>;
     scoreMockAnswer(sessionId: bigint, questionId: bigint, score: bigint, feedback: string): Promise<void>;
     selfRegisterAsUser(): Promise<void>;

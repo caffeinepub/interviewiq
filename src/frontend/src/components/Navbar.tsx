@@ -22,6 +22,7 @@ import {
   PlayCircle,
   Shield,
   Sparkles,
+  GraduationCap as StudentIcon,
   Users,
 } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -53,7 +54,6 @@ export function Navbar() {
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-1">
-          {/* Admissions link visible to everyone */}
           <NavLink
             to="/admissions"
             label="Admissions"
@@ -69,6 +69,13 @@ export function Navbar() {
                 icon={<LayoutDashboard size={15} />}
                 active={location.pathname === "/candidate"}
                 ocid="nav.dashboard_link"
+              />
+              <NavLink
+                to="/student-dashboard"
+                label="My Learning"
+                icon={<StudentIcon size={15} />}
+                active={location.pathname === "/student-dashboard"}
+                ocid="nav.student_link"
               />
               <NavLink
                 to="/assessment"
@@ -101,7 +108,6 @@ export function Navbar() {
                 active={location.pathname === "/interview-answers"}
                 ocid="nav.answers_link"
               />
-              {/* Admin Portal link for non-admin users */}
               <NavLink
                 to="/admin"
                 label="Admin Portal"
@@ -113,7 +119,6 @@ export function Navbar() {
             </>
           )}
           {!isAuthenticated && (
-            /* Admin Portal link for unauthenticated users */
             <NavLink
               to="/admin"
               label="Admin Portal"
@@ -201,6 +206,15 @@ export function Navbar() {
                       <Link to="/candidate" data-ocid="nav.dashboard_link">
                         <LayoutDashboard size={14} className="mr-2" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/student-dashboard"
+                        data-ocid="nav.student_link"
+                      >
+                        <StudentIcon size={14} className="mr-2" />
+                        My Learning
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

@@ -22,6 +22,7 @@ import {
   Layers,
   Loader2,
   LogIn,
+  Mic,
   PlayCircle,
   Settings,
   ShieldCheck,
@@ -148,6 +149,7 @@ export function AssessmentPage() {
   const createMockInterview = useCreateMockInterview();
 
   const [isStarting, setIsStarting] = useState(false);
+  const [verbalMode, setVerbalMode] = useState(false);
 
   const categoryBreakdown = (questions ?? []).reduce<Record<string, number>>(
     (acc, q) => {
@@ -204,6 +206,7 @@ export function AssessmentPage() {
       });
 
       toast.success("Assessment created! Starting your session...");
+      sessionStorage.setItem("verbalMode", verbalMode ? "1" : "0");
       void navigate({
         to: "/session/$id",
         params: { id: sessionId.toString() },
@@ -349,7 +352,30 @@ export function AssessmentPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-4">
+              {/* Verbal Mode Toggle */}
+              <button
+                type="button"
+                onClick={() => setVerbalMode((v) => !v)}
+                className={`flex items-center gap-3 rounded-xl border px-5 py-3 text-sm transition-all text-left ${verbalMode ? "border-primary/50 bg-primary/10 text-primary" : "border-border/60 bg-muted/20 text-muted-foreground hover:border-primary/30 hover:bg-primary/5"}`}
+                data-ocid="assessment.verbal_mode_toggle"
+              >
+                <Mic
+                  size={16}
+                  className={
+                    verbalMode ? "text-primary" : "text-muted-foreground"
+                  }
+                />
+                <div className="text-left">
+                  <p className="font-medium text-xs">
+                    {verbalMode ? "Verbal Mode On" : "Enable Verbal Mode"}
+                  </p>
+                  <p className="text-[11px] opacity-70">
+                    Answer questions by speaking. Questions read aloud
+                    automatically.
+                  </p>
+                </div>
+              </button>
               <Button
                 size="lg"
                 className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow px-8"

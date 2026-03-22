@@ -4,320 +4,357 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  BarChart3,
   BookOpen,
   BrainCircuit,
+  Camera,
   CheckCircle2,
-  Clock,
-  GraduationCap,
-  Layers,
+  Lock,
+  Mic,
   Shield,
-  ShieldCheck,
-  Star,
-  Users,
+  Sparkles,
+  TrendingUp,
   Zap,
 } from "lucide-react";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { motion } from "motion/react";
 
 const features = [
   {
-    icon: BrainCircuit,
-    title: "Adaptive AI Interviews",
+    icon: <Sparkles className="h-5 w-5" />,
+    title: "Adaptive AI Engine",
     description:
-      "Questions adapt in real-time based on candidate responses, ensuring a personalized and accurate assessment every time.",
+      "Questions dynamically adjust based on your performance in real-time. Score high and face harder challenges; struggle and get supportive difficulty.",
     color: "text-primary",
     bg: "bg-primary/10",
+    border: "border-primary/20",
   },
   {
-    icon: Layers,
-    title: "Multi-format Evaluation",
+    icon: <Camera className="h-5 w-5" />,
+    title: "Computer Proctoring",
     description:
-      "Support text, code snippets, and structured responses. Evaluate technical depth, communication, and problem-solving skills.",
-    color: "text-info",
-    bg: "bg-info/10",
+      "Live webcam monitoring, screen share tracking, and tab-switch detection ensure a fair, secure assessment environment throughout.",
+    color: "text-cyan-400",
+    bg: "bg-cyan/10",
+    border: "border-cyan/20",
   },
   {
-    icon: BarChart3,
-    title: "Detailed Reports",
+    icon: <Lock className="h-5 w-5" />,
+    title: "Blockchain-Secured",
     description:
-      "Comprehensive score breakdowns with per-question analytics, evaluator notes, and exportable PDF reports.",
+      "All session data, scores, and reports are stored on the Internet Computer blockchain — tamper-proof, decentralized, zero server costs.",
+    color: "text-violet-400",
+    bg: "bg-violet/10",
+    border: "border-violet/20",
+  },
+  {
+    icon: <Mic className="h-5 w-5" />,
+    title: "Verbal Mode",
+    description:
+      "Enable speech-to-text answering and text-to-speech question reading. Evaluate communication skills in a multi-format assessment.",
     color: "text-success",
     bg: "bg-success/10",
+    border: "border-success/20",
   },
-  {
-    icon: ShieldCheck,
-    title: "Anti-cheat & Fairness",
-    description:
-      "Session flagging, time tracking, and behavioral analysis ensure a fair, credible evaluation process.",
-    color: "text-warning",
-    bg: "bg-warning/10",
-  },
-  {
-    icon: Users,
-    title: "Role-based Access",
-    description:
-      "Clear separation between candidates, evaluators, and admins — each with focused, purpose-built dashboards.",
-    color: "text-chart-4",
-    bg: "bg-chart-4/10",
-  },
-  {
-    icon: BookOpen,
-    title: "Question Bank",
-    description:
-      "Curated library of questions by category, difficulty, and tags. Evaluators can customize every interview.",
-    color: "text-chart-5",
-    bg: "bg-chart-5/10",
-  },
+];
+
+const stats = [
+  { value: "19+", label: "Curated Questions", icon: <BookOpen size={16} /> },
+  { value: "AI", label: "Adaptive Engine", icon: <BrainCircuit size={16} /> },
+  { value: "0", label: "Server Costs", icon: <Zap size={16} /> },
+  { value: "100%", label: "On-Chain", icon: <Lock size={16} /> },
 ];
 
 const steps = [
   {
     num: "01",
-    title: "Create your profile",
-    description:
-      "Sign in and set up your candidate or evaluator profile in under a minute.",
+    title: "Sign In",
+    desc: "Passwordless login via Internet Identity",
   },
   {
     num: "02",
-    title: "Schedule or start an interview",
-    description:
-      "Evaluators create sessions; candidates can start mock interviews anytime.",
+    title: "Choose Mode",
+    desc: "Standard or AI-adaptive assessment",
   },
   {
     num: "03",
-    title: "Answer adaptively",
-    description:
-      "Work through questions with a built-in timer, code editor, and auto-save.",
+    title: "Take the Test",
+    desc: "30-min timed session with proctoring",
   },
   {
     num: "04",
-    title: "Get scored & reported",
-    description:
-      "AI and human evaluators score answers. View your comprehensive report instantly.",
+    title: "View Report",
+    desc: "Instant scores with detailed feedback",
   },
 ];
 
-const stats = [
-  { value: "10K+", label: "Interviews Completed" },
-  { value: "98%", label: "Candidate Satisfaction" },
-  { value: "<2min", label: "Average Setup Time" },
-  { value: "500+", label: "Question Library" },
-];
-
 export function LandingPage() {
-  const { login, isLoggingIn, identity } = useInternetIdentity();
-
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
+    <div className="flex flex-col">
       {/* Hero */}
-      <section className="relative overflow-hidden py-20 md:py-32 gradient-hero">
-        <div className="container relative z-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge
-              variant="outline"
-              className="mb-6 border-primary/40 bg-primary/5 text-primary px-4 py-1 text-sm"
+      <section className="relative overflow-hidden gradient-hero min-h-[88vh] flex items-center">
+        {/* Background grid */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(oklch(0.35 0.05 263 / 0.08) 1px, transparent 1px), linear-gradient(90deg, oklch(0.35 0.05 263 / 0.08) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+
+        <div className="container relative py-24 md:py-32">
+          <div className="max-w-4xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <Zap size={12} className="mr-1.5" />
-              AI-Powered Hiring Platform
-            </Badge>
-
-            <h1 className="font-display text-5xl font-bold tracking-tight leading-tight mb-6 md:text-6xl lg:text-7xl">
-              Interview smarter,{" "}
-              <span className="text-primary">hire better</span>
-            </h1>
-
-            <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto md:text-xl">
-              InterviewIQ is an intelligent adaptive platform that creates
-              personalized interview experiences, evaluates candidates
-              objectively, and delivers data-driven hiring insights.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                asChild
-                size="lg"
-                className="gap-2 bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 transition-all"
+              <Badge
+                variant="outline"
+                className="mb-6 border-primary/40 bg-primary/10 text-primary px-4 py-1.5 text-sm font-medium"
               >
-                <Link to="/admissions" data-ocid="landing.admissions_button">
-                  <GraduationCap size={16} />
-                  Candidate Admissions Portal
-                  <ArrowRight size={16} />
-                </Link>
-              </Button>
-              {identity ? (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 border-border/60"
-                >
-                  <Link to="/candidate" data-ocid="landing.get_started_button">
-                    Go to Dashboard
-                  </Link>
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 border-border/60"
-                  asChild
-                >
-                  <Link to="/questions">View Question Bank</Link>
-                </Button>
-              )}
-            </div>
+                <Sparkles size={12} className="mr-1.5" />
+                AI-Powered · Blockchain-Secured · Decentralized
+              </Badge>
+            </motion.div>
 
-            {/* Admin Portal subtle link */}
-            <div className="mt-5 flex justify-center">
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="font-display text-5xl font-extrabold tracking-tight leading-[1.1] md:text-7xl lg:text-8xl mb-6"
+            >
+              Interview
+              <span className="text-gradient">IQ</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-xl text-muted-foreground leading-relaxed max-w-2xl mb-10 md:text-2xl"
+            >
+              The decentralized AI-powered interview platform that standardizes
+              technical and behavioral assessments. Fair, secure, and instant.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-wrap items-center gap-4"
+            >
+              <Link to="/assessment">
+                <Button
+                  size="lg"
+                  className="h-12 px-8 text-base font-bold shadow-glow bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                  data-ocid="landing.start_button"
+                >
+                  Start Assessment
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+              <Link to="/admissions">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-12 px-8 text-base font-semibold border-border/60 gap-2"
+                  data-ocid="landing.admissions_button"
+                >
+                  View Admissions
+                </Button>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="mt-5"
+            >
               <Link
                 to="/admin"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                 data-ocid="landing.admin_link"
               >
-                <Shield size={11} />
-                Admin Portal
+                Admin Portal →
               </Link>
-            </div>
+            </motion.div>
           </div>
+        </div>
+      </section>
 
-          {/* Stats */}
-          <div className="mt-20 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {stats.map((stat) => (
-              <div
+      {/* Stats bar */}
+      <section className="border-y border-border/40 bg-card/50">
+        <div className="container py-8">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {stats.map((stat, i) => (
+              <motion.div
                 key={stat.label}
-                className="rounded-xl border border-border/60 bg-card/60 p-6 text-center backdrop-blur-sm"
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="flex flex-col items-center gap-1 text-center"
               >
-                <div className="font-display text-3xl font-bold text-primary">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  {stat.icon}
+                  <span className="text-xs uppercase tracking-widest">
+                    {stat.label}
+                  </span>
+                </div>
+                <span className="font-display text-3xl font-bold text-gradient">
                   {stat.value}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </div>
+                </span>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-20 bg-muted/30">
-        <div className="container">
-          <div className="mx-auto max-w-2xl text-center mb-14">
-            <h2 className="font-display text-3xl font-bold tracking-tight mb-4 md:text-4xl">
-              Everything you need for{" "}
-              <span className="text-primary">world-class hiring</span>
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              From adaptive questioning to structured evaluation — every tool in
-              one platform.
-            </p>
-          </div>
+      <section className="container py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <Badge
+            variant="outline"
+            className="mb-4 border-primary/30 bg-primary/8 text-primary"
+          >
+            Core Features
+          </Badge>
+          <h2 className="font-display text-4xl font-bold tracking-tight mb-4 md:text-5xl">
+            Everything you need for
+            <br />
+            <span className="text-gradient">fair, modern interviews</span>
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Built on decentralized infrastructure with AI at its core. No
+            servers, no bias, no compromises.
+          </p>
+        </motion.div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((feat, i) => (
+            <motion.div
+              key={feat.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+            >
               <Card
-                key={feature.title}
-                className="border-border/60 bg-card hover:border-primary/30 transition-colors group"
+                className={`h-full border ${feat.border} hover:shadow-glow transition-all duration-300 bg-card/80`}
               >
-                <CardContent className="p-6">
+                <CardContent className="pt-6 pb-6">
                   <div
-                    className={`mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg ${feature.bg} ${feature.color}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${feat.bg} ${feat.color} mb-4`}
                   >
-                    <feature.icon size={20} />
+                    {feat.icon}
                   </div>
-                  <h3 className="font-display text-base font-semibold mb-2">
-                    {feature.title}
+                  <h3 className="font-display font-bold text-lg mb-2">
+                    {feat.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {feature.description}
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {feat.description}
                   </p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* How it Works */}
-      <section className="py-20">
+      {/* How it works */}
+      <section className="border-y border-border/40 bg-card/30 py-24">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center mb-14">
-            <h2 className="font-display text-3xl font-bold tracking-tight mb-4 md:text-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="font-display text-4xl font-bold tracking-tight mb-4">
               How it works
             </h2>
             <p className="text-muted-foreground text-lg">
-              From signup to scored report in four simple steps.
+              From sign-in to report in under 35 minutes.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
-              <div key={step.num} className="relative">
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="relative"
+              >
                 {i < steps.length - 1 && (
-                  <div className="absolute top-5 left-[calc(50%+2rem)] hidden h-px w-[calc(100%-4rem)] bg-border/60 lg:block" />
+                  <div className="absolute top-6 left-full hidden lg:block w-full h-px bg-gradient-to-r from-border to-transparent z-0" />
                 )}
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/20">
-                    <span className="font-display text-xs font-bold text-primary">
-                      {step.num}
-                    </span>
+                <div className="relative z-10">
+                  <div className="font-display text-5xl font-black text-primary/20 mb-3">
+                    {step.num}
                   </div>
-                  <h3 className="font-display text-base font-semibold mb-2">
+                  <h3 className="font-display font-bold text-xl mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {step.description}
-                  </p>
+                  <p className="text-muted-foreground text-sm">{step.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="py-20 bg-primary/5">
-        <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="mb-4 flex justify-center gap-1">
-              {["s1", "s2", "s3", "s4", "s5"].map((k) => (
-                <Star key={k} size={16} className="fill-warning text-warning" />
-              ))}
-            </div>
-            <h2 className="font-display text-3xl font-bold tracking-tight mb-4 md:text-4xl">
-              Ready to transform your hiring?
+      {/* CTA */}
+      <section className="container py-24">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="relative overflow-hidden rounded-3xl border border-primary/30 bg-primary/5 p-12 text-center shadow-glow"
+        >
+          <div className="pointer-events-none absolute inset-0 gradient-hero opacity-60" />
+          <div className="relative">
+            <CheckCircle2 className="mx-auto mb-6 h-12 w-12 text-primary" />
+            <h2 className="font-display text-4xl font-bold tracking-tight mb-4 md:text-5xl">
+              Ready to get started?
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              Join thousands of companies using InterviewIQ to find the best
-              talent faster.
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
+              Join thousands of candidates and organizations using InterviewIQ
+              for fair, structured, blockchain-secured assessments.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {identity ? (
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link to="/assessment">
                 <Button
-                  asChild
                   size="lg"
-                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="h-12 px-8 text-base font-bold shadow-glow bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                  data-ocid="landing.cta_button"
                 >
-                  <Link to="/candidate">
-                    <CheckCircle2 size={16} />
-                    Open Dashboard
-                  </Link>
+                  Start Free Assessment
+                  <ArrowRight size={18} />
                 </Button>
-              ) : (
+              </Link>
+              <Link to="/interview-answers">
                 <Button
-                  onClick={login}
-                  disabled={isLoggingIn}
                   size="lg"
-                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                  data-ocid="landing.get_started_button"
+                  variant="ghost"
+                  className="h-12 px-8 text-base"
+                  data-ocid="landing.guide_button"
                 >
-                  <CheckCircle2 size={16} />
-                  {isLoggingIn ? "Connecting..." : "Start for Free"}
+                  <TrendingUp size={16} className="mr-2" />
+                  View Answer Guide
                 </Button>
-              )}
+              </Link>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
     </div>
   );

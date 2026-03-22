@@ -21,6 +21,8 @@ export interface CandidateProfile {
   'experienceLevel' : string,
   'name' : string,
   'email' : string,
+  'resumeText' : string,
+  'extractedSkills' : Array<string>,
   'targetRole' : string,
 }
 export type Difficulty = { 'easy' : null } |
@@ -52,6 +54,10 @@ export interface Question {
   'description' : string,
   'category' : string,
 }
+export interface SkillsAndResume {
+  'resumeText' : string,
+  'skills' : Array<string>,
+}
 export type Time = bigint;
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
@@ -82,11 +88,21 @@ export interface _SERVICE {
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCandidateProfile' : ActorMethod<[Principal], [] | [CandidateProfile]>,
+  'getFilteredQuestions' : ActorMethod<
+    [[] | [string], [] | [Difficulty], [] | [string]],
+    Array<Question>
+  >,
+  'getResumeSkills' : ActorMethod<[Principal], [] | [SkillsAndResume]>,
+  'getResumeSkillsDeprecated' : ActorMethod<
+    [Principal],
+    [Array<string>, string]
+  >,
   'getSession' : ActorMethod<[bigint], [] | [InterviewSession]>,
   'getSessionAnswers' : ActorMethod<[bigint], Array<AnswerSubmission>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveResumeSkills' : ActorMethod<[Array<string>, string], undefined>,
   'scoreAnswer' : ActorMethod<[bigint, bigint, bigint, string], undefined>,
   'scoreMockAnswer' : ActorMethod<[bigint, bigint, bigint, string], undefined>,
   'selfRegisterAsUser' : ActorMethod<[], undefined>,

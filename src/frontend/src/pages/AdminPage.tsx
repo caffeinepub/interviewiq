@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useClaimFirstAdmin } from "../hooks/useQueries";
+import { useClaimFirstAdmin, useGetAdminAssigned } from "../hooks/useQueries";
 
 export function AdminPage() {
   const navigate = useNavigate();
@@ -33,28 +33,28 @@ export function AdminPage() {
   const { actor, isFetching: actorFetching } = useActor();
   const claimAdmin = useClaimFirstAdmin();
 
-  // Track whether selfRegisterAsUser has completed (success or already registered)
   const [registered, setRegistered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [claiming, setClaiming] = useState(false);
 
-  // Step 1: As soon as actor is ready + authenticated, register the user first.
-  // Only after this completes do we check admin status.
+  // Step 1: Register user before checking admin status
   useEffect(() => {
     if (!isAuthenticated || !actor || registered) return;
-
     void (async () => {
       try {
         await actor.selfRegisterAsUser();
       } catch {
-        // already registered — that's fine, proceed
+        // already registered
       }
       setRegistered(true);
     })();
   }, [isAuthenticated, actor, registered]);
 
-  // Step 2: Check admin status ONLY after registration is confirmed.
-  // This prevents isCallerAdmin() from trapping on unregistered users.
+  // Step 2: Check if admin has been claimed (public query — no auth needed)
+  const { data: adminAssigned, isLoading: checkingAdminAssigned } =
+    useGetAdminAssigned();
+
+  // Step 3: Check if current caller is admin (after registration)
   const {
     data: isAdmin,
     isLoading: checkingAdmin,
@@ -79,10 +79,10 @@ export function AdminPage() {
     }
   }, [isAdmin, navigate]);
 
-  // Show loading while: initializing auth, actor fetching, or waiting for registration + admin check
   const isLoading =
     isInitializing ||
     actorFetching ||
+    checkingAdminAssigned ||
     (isAuthenticated && !registered) ||
     (registered && checkingAdmin);
 
@@ -99,10 +99,8 @@ export function AdminPage() {
   const handleClaimAdmin = async () => {
     setClaiming(true);
     try {
-      // Registration already completed at mount — just claim admin directly
       await claimAdmin.mutateAsync();
       toast.success("Admin role activated! Redirecting to dashboard...");
-      // Wait a moment for canister state to settle, then refetch and navigate
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await refetchAdmin();
       void navigate({ to: "/admin/dashboard" });
@@ -179,10 +177,10 @@ export function AdminPage() {
           </Card>
         )}
 
-        {/* Authenticated — show one-click Become Admin */}
+        {/* Authenticated — not yet admin */}
         {!isLoading && isAuthenticated && !isAdmin && (
           <>
-            {/* Identity info */}
+            {/* Identity info bar */}
             <div className="flex items-center justify-between rounded-lg bg-muted/40 border border-border/60 px-4 py-3 gap-3">
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Shield className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -216,73 +214,105 @@ export function AdminPage() {
               </div>
             </div>
 
-            {/* One-click Become Admin Card */}
-            <Card className="border-primary/30 shadow-md bg-primary/5">
-              <CardHeader className="pb-4">
-                <CardTitle className="font-display text-xl flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-primary" />
-                  Become Admin
-                </CardTitle>
-                <CardDescription className="leading-relaxed">
-                  One click — instantly activate admin access for your account
-                  and get redirected to the Admin Dashboard.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button
-                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-bold shadow-glow"
-                  onClick={handleClaimAdmin}
-                  disabled={claiming}
-                  data-ocid="admin.become_admin_button"
-                >
-                  {claiming ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Shield className="h-5 w-5" />
-                  )}
-                  {claiming ? "Activating Admin Role…" : "Become Admin"}
-                </Button>
+            {/* Case A: No admin yet — show Become Admin */}
+            {!adminAssigned && (
+              <Card className="border-primary/30 shadow-md bg-primary/5">
+                <CardHeader className="pb-4">
+                  <CardTitle className="font-display text-xl flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Become Admin
+                  </CardTitle>
+                  <CardDescription className="leading-relaxed">
+                    No admin exists yet. Click below to instantly activate admin
+                    access and get redirected to the Admin Dashboard.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button
+                    className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-bold"
+                    onClick={handleClaimAdmin}
+                    disabled={claiming}
+                    data-ocid="admin.become_admin_button"
+                  >
+                    {claiming ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Shield className="h-5 w-5" />
+                    )}
+                    {claiming ? "Activating Admin Role…" : "Become Admin"}
+                  </Button>
 
-                <div className="rounded-lg bg-muted/50 border border-border/60 p-3">
-                  <p className="text-xs font-medium mb-1">Your Principal ID</p>
-                  <p className="font-mono text-xs text-muted-foreground break-all select-all">
-                    {principalFull}
+                  <div className="rounded-lg bg-muted/50 border border-border/60 p-3">
+                    <p className="text-xs font-medium mb-1">
+                      Your Principal ID
+                    </p>
+                    <p className="font-mono text-xs text-muted-foreground break-all select-all">
+                      {principalFull}
+                    </p>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 h-9 text-xs border-border/60"
+                    onClick={handleCopyPrincipal}
+                    data-ocid="admin.copy_id_button"
+                  >
+                    {copied ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                    {copied ? "Copied!" : "Copy Principal ID"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Case B: Admin already claimed — show get-role instructions */}
+            {adminAssigned && (
+              <Card className="border-border/60 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="font-display text-lg flex items-center gap-2">
+                    <UserCog className="h-5 w-5 text-primary" />
+                    Request Role Access
+                  </CardTitle>
+                  <CardDescription className="leading-relaxed">
+                    An admin already exists on this platform. Share your
+                    Principal ID with the admin and ask them to assign you a
+                    role from the Admin Dashboard.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-lg bg-muted/50 border border-border/60 p-3">
+                    <p className="text-xs font-medium mb-1">
+                      Your Principal ID
+                    </p>
+                    <p className="font-mono text-xs text-muted-foreground break-all select-all">
+                      {principalFull}
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full gap-2 h-10 font-semibold"
+                    onClick={handleCopyPrincipal}
+                    data-ocid="admin.copy_id_button"
+                  >
+                    {copied ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                    {copied ? "Copied!" : "Copy My Principal ID"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Send this ID to the admin so they can assign your role.
                   </p>
-                </div>
-
-                <Button
-                  variant="outline"
-                  className="w-full gap-2 h-9 text-xs border-border/60"
-                  onClick={handleCopyPrincipal}
-                  data-ocid="admin.copy_id_button"
-                >
-                  {copied ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5" />
-                  )}
-                  {copied ? "Copied!" : "Copy Principal ID"}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Note for users needing role from existing admin */}
-            <Card className="border-border/60">
-              <CardContent className="py-4 px-5">
-                <div className="flex items-start gap-3">
-                  <UserCog className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    If an admin already exists and you need a role assigned,
-                    share your Principal ID with them. They can promote your
-                    account from the Admin Dashboard.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
-        {/* Redirecting to dashboard */}
+        {/* Redirecting state */}
         {!isLoading && isAuthenticated && isAdmin === true && (
           <Card className="border-border/60" data-ocid="admin.success_state">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-12">

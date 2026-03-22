@@ -31,7 +31,13 @@ export const CandidateProfile = IDL.Record({
   'experienceLevel' : IDL.Text,
   'name' : IDL.Text,
   'email' : IDL.Text,
+  'resumeText' : IDL.Text,
+  'extractedSkills' : IDL.Vec(IDL.Text),
   'targetRole' : IDL.Text,
+});
+export const SkillsAndResume = IDL.Record({
+  'resumeText' : IDL.Text,
+  'skills' : IDL.Vec(IDL.Text),
 });
 export const Time = IDL.Int;
 export const InterviewStatus = IDL.Variant({
@@ -94,6 +100,21 @@ export const idlService = IDL.Service({
       [IDL.Opt(CandidateProfile)],
       ['query'],
     ),
+  'getFilteredQuestions' : IDL.Func(
+      [IDL.Opt(IDL.Text), IDL.Opt(Difficulty), IDL.Opt(IDL.Text)],
+      [IDL.Vec(Question)],
+      ['query'],
+    ),
+  'getResumeSkills' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(SkillsAndResume)],
+      ['query'],
+    ),
+  'getResumeSkillsDeprecated' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(IDL.Text), IDL.Text],
+      [],
+    ),
   'getSession' : IDL.Func([IDL.Nat], [IDL.Opt(InterviewSession)], ['query']),
   'getSessionAnswers' : IDL.Func(
       [IDL.Nat],
@@ -107,6 +128,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'saveResumeSkills' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
   'scoreAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
   'scoreMockAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
   'selfRegisterAsUser' : IDL.Func([], [], []),
@@ -146,7 +168,13 @@ export const idlFactory = ({ IDL }) => {
     'experienceLevel' : IDL.Text,
     'name' : IDL.Text,
     'email' : IDL.Text,
+    'resumeText' : IDL.Text,
+    'extractedSkills' : IDL.Vec(IDL.Text),
     'targetRole' : IDL.Text,
+  });
+  const SkillsAndResume = IDL.Record({
+    'resumeText' : IDL.Text,
+    'skills' : IDL.Vec(IDL.Text),
   });
   const Time = IDL.Int;
   const InterviewStatus = IDL.Variant({
@@ -213,6 +241,21 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(CandidateProfile)],
         ['query'],
       ),
+    'getFilteredQuestions' : IDL.Func(
+        [IDL.Opt(IDL.Text), IDL.Opt(Difficulty), IDL.Opt(IDL.Text)],
+        [IDL.Vec(Question)],
+        ['query'],
+      ),
+    'getResumeSkills' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(SkillsAndResume)],
+        ['query'],
+      ),
+    'getResumeSkillsDeprecated' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(IDL.Text), IDL.Text],
+        [],
+      ),
     'getSession' : IDL.Func([IDL.Nat], [IDL.Opt(InterviewSession)], ['query']),
     'getSessionAnswers' : IDL.Func(
         [IDL.Nat],
@@ -226,6 +269,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'saveResumeSkills' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
     'scoreAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
     'scoreMockAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
     'selfRegisterAsUser' : IDL.Func([], [], []),

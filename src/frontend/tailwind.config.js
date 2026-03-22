@@ -66,6 +66,14 @@ export default {
           DEFAULT: "oklch(var(--info) / <alpha-value>)",
           foreground: "oklch(var(--info-foreground))",
         },
+        cyan: {
+          DEFAULT: "oklch(var(--cyan) / <alpha-value>)",
+          foreground: "oklch(var(--cyan-foreground))",
+        },
+        violet: {
+          DEFAULT: "oklch(var(--violet) / <alpha-value>)",
+          foreground: "oklch(var(--violet-foreground))",
+        },
         chart: {
           1: "oklch(var(--chart-1))",
           2: "oklch(var(--chart-2))",
@@ -91,8 +99,10 @@ export default {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
-        glow: "0 0 20px oklch(0.55 0.18 155 / 0.2)",
-        "glow-lg": "0 0 40px oklch(0.55 0.18 155 / 0.25)",
+        glow: "0 0 20px oklch(0.60 0.22 277 / 0.3)",
+        "glow-lg": "0 0 40px oklch(0.60 0.22 277 / 0.35)",
+        "glow-cyan": "0 0 20px oklch(0.70 0.15 212 / 0.3)",
+        "glow-violet": "0 0 30px oklch(0.52 0.27 290 / 0.3)",
       },
       keyframes: {
         "accordion-down": {
@@ -111,12 +121,22 @@ export default {
           from: { opacity: "0", transform: "scale(0.95)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        shimmer: {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
+        "pulse-ring": {
+          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.05)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.4s ease-out forwards",
         "scale-in": "scale-in 0.3s ease-out forwards",
+        shimmer: "shimmer 2s linear infinite",
+        "pulse-ring": "pulse-ring 2s ease-in-out infinite",
       },
     },
   },

@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/assets/fonts/BricolageGrotesque.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/assets/fonts/PlusJakartaSans.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/assets/fonts/JetBrainsMono.woff2") format("woff2");
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* InterviewIQ — Dark Professional: Deep Navy + Electric Violet + Cyan */
+    /* Default: DARK mode */
+    --background: 0.16 0.025 264;
+    --foreground: 0.93 0.015 240;
+
+    --card: 0.2 0.03 263;
+    --card-foreground: 0.93 0.015 240;
+
+    --popover: 0.22 0.035 263;
+    --popover-foreground: 0.93 0.015 240;
+
+    /* Primary: Electric Violet/Indigo #6366f1 → oklch(0.60 0.22 277) */
+    --primary: 0.6 0.22 277;
+    --primary-foreground: 0.98 0.005 240;
+
+    --secondary: 0.25 0.04 263;
+    --secondary-foreground: 0.88 0.015 240;
+
+    --muted: 0.23 0.035 263;
+    --muted-foreground: 0.6 0.03 260;
+
+    --accent: 0.27 0.045 263;
+    --accent-foreground: 0.9 0.015 240;
+
+    --destructive: 0.6 0.22 27;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 0.28 0.04 263;
+    --input: 0.26 0.04 263;
+    --ring: 0.6 0.22 277;
+
+    /* Cyan highlight #06b6d4 → oklch(0.70 0.15 212) */
+    --cyan: 0.7 0.15 212;
+    --cyan-foreground: 0.12 0.02 212;
+
+    /* Deep violet #7c3aed → oklch(0.52 0.27 290) */
+    --violet: 0.52 0.27 290;
+    --violet-foreground: 0.98 0.005 240;
+
+    /* Status colors */
+    --success: 0.65 0.18 145;
+    --success-foreground: 0.12 0 0;
+    --warning: 0.78 0.18 70;
+    --warning-foreground: 0.12 0 0;
+    --info: 0.7 0.15 212;
+    --info-foreground: 0.12 0.02 212;
+
+    --chart-1: 0.6 0.22 277;
+    --chart-2: 0.7 0.15 212;
+    --chart-3: 0.65 0.18 145;
+    --chart-4: 0.52 0.27 290;
+    --chart-5: 0.72 0.18 70;
+
+    --sidebar: 0.18 0.03 263;
+    --sidebar-foreground: 0.93 0.015 240;
+    --sidebar-primary: 0.6 0.22 277;
+    --sidebar-primary-foreground: 0.98 0.005 240;
+    --sidebar-accent: 0.24 0.038 263;
+    --sidebar-accent-foreground: 0.9 0.015 240;
+    --sidebar-border: 0.27 0.04 263;
+    --sidebar-ring: 0.6 0.22 277;
+  }
+
+  .light {
+    --background: 0.97 0.006 255;
+    --foreground: 0.17 0.03 264;
+
+    --card: 0.99 0.003 250;
+    --card-foreground: 0.17 0.03 264;
+
+    --popover: 0.99 0.003 250;
+    --popover-foreground: 0.17 0.03 264;
+
+    --primary: 0.56 0.22 277;
+    --primary-foreground: 0.98 0.005 240;
+
+    --secondary: 0.93 0.015 260;
+    --secondary-foreground: 0.22 0.04 264;
+
+    --muted: 0.94 0.012 260;
+    --muted-foreground: 0.52 0.025 264;
+
+    --accent: 0.93 0.015 260;
+    --accent-foreground: 0.22 0.04 264;
+
+    --destructive: 0.58 0.22 27;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 0.88 0.02 264;
+    --input: 0.88 0.02 264;
+    --ring: 0.56 0.22 277;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  /* Hero gradient: violet bloom from top + cyan shimmer on right */
+  .gradient-hero {
+    background: radial-gradient(
+        ellipse 90% 70% at 50% -10%,
+        oklch(0.6 0.22 277 / 0.18),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 50% 50% at 90% 40%,
+        oklch(0.7 0.15 212 / 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 40% 40% at 10% 80%,
+        oklch(0.52 0.27 290 / 0.08),
+        transparent 60%
+      );
+  }
+
+  /* Card with subtle gradient border effect */
+  .gradient-card {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--card) / 1) 0%,
+      oklch(var(--card) / 0.9) 100%
+    );
+  }
+
+  /* Glow effects */
+  .glow-violet {
+    box-shadow: 0 0 30px oklch(0.6 0.22 277 / 0.25);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 30px oklch(0.7 0.15 212 / 0.25);
+  }
+
+  /* Score gauge */
+  .score-gauge-track {
+    fill: none;
+    stroke: oklch(var(--border));
+    stroke-width: 8;
+  }
+
+  .score-gauge-fill {
+    fill: none;
+    stroke: oklch(var(--primary));
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease-in-out;
+  }
+
+  /* Violet gradient text */
+  .text-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.2 277),
+      oklch(0.7 0.15 212)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Neon border */
+  .border-glow {
+    border-color: oklch(0.6 0.22 277 / 0.4);
+    box-shadow: 0 0 0 1px oklch(0.6 0.22 277 / 0.15);
+  }
+
+  /* Camera panel */
+  .camera-panel {
+    background: oklch(0.12 0.02 263);
+    border: 1px solid oklch(0.6 0.22 277 / 0.3);
+  }
+}
