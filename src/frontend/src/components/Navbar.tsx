@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ import {
   BookOpen,
   Brain,
   BrainCircuit,
+  Briefcase,
   ChevronDown,
   GraduationCap,
   LayoutDashboard,
@@ -21,12 +23,89 @@ import {
   LogOut,
   PlayCircle,
   Shield,
+  ShieldCheck,
   Sparkles,
   GraduationCap as StudentIcon,
+  User,
   Users,
 } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useIsCallerAdmin } from "../hooks/useQueries";
+
+// Portal switcher pills
+function PortalSwitcher({ isAdmin }: { isAdmin: boolean | undefined }) {
+  const location = useLocation();
+
+  const isCandidate =
+    location.pathname.startsWith("/candidate") ||
+    location.pathname.startsWith("/assessment") ||
+    location.pathname.startsWith("/adaptive") ||
+    location.pathname.startsWith("/session") ||
+    location.pathname.startsWith("/student-dashboard") ||
+    location.pathname.startsWith("/mock-interview") ||
+    location.pathname.startsWith("/onboarding");
+
+  const isEvaluator =
+    location.pathname.startsWith("/evaluator") ||
+    location.pathname.startsWith("/questions") ||
+    location.pathname.startsWith("/interview-answers");
+
+  const isRecruiter = location.pathname.startsWith("/recruiter");
+
+  const isAdminPortal = location.pathname.startsWith("/admin");
+
+  const portals = [
+    {
+      label: "Candidate",
+      icon: <User size={13} />,
+      to: "/candidate",
+      active: isCandidate,
+      ocid: "nav.candidate_portal_button",
+    },
+    {
+      label: "Recruiter",
+      icon: <Briefcase size={13} />,
+      to: "/recruiter",
+      active: isRecruiter,
+      ocid: "nav.recruiter_portal_button",
+    },
+    {
+      label: "Evaluator",
+      icon: <Users size={13} />,
+      to: "/evaluator",
+      active: isEvaluator,
+      ocid: "nav.evaluator_portal_button",
+    },
+    {
+      label: "Admin",
+      icon: <Shield size={13} />,
+      to: isAdmin ? "/admin/dashboard" : "/admin",
+      active: isAdminPortal,
+      ocid: "nav.admin_portal_button",
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 p-1">
+      {portals.map((portal) => (
+        <Link
+          key={portal.label}
+          to={portal.to}
+          data-ocid={portal.ocid}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200",
+            portal.active
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          )}
+        >
+          {portal.icon}
+          <span className="hidden sm:inline">{portal.label}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 export function Navbar() {
   const { identity, login, clear, isLoggingIn, isInitializing } =
@@ -41,9 +120,9 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between gap-3">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 transition-all group-hover:bg-primary/20 group-hover:ring-primary/40">
             <BrainCircuit className="h-4.5 w-4.5" size={18} />
           </div>
@@ -51,6 +130,9 @@ export function Navbar() {
             Interview<span className="text-primary">IQ</span>
           </span>
         </Link>
+
+        {/* Portal Switcher — center */}
+        {isAuthenticated && <PortalSwitcher isAdmin={isAdmin} />}
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-1">
@@ -163,7 +245,7 @@ export function Navbar() {
         </nav>
 
         {/* Auth Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           {isAuthenticated && isAdmin && (
             <Badge
               variant="outline"
@@ -218,6 +300,12 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/recruiter" data-ocid="nav.recruiter_link">
+                        <Briefcase size={14} className="mr-2" />
+                        Recruiter Portal
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/assessment" data-ocid="nav.assessment_link">
                         <Brain size={14} className="mr-2" />
                         Assessment
@@ -258,6 +346,12 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/recruiter" data-ocid="nav.recruiter_link">
+                        <Briefcase size={14} className="mr-2" />
+                        Recruiter Portal
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/evaluator" data-ocid="nav.dashboard_link">
                         <Users size={14} className="mr-2" />
                         Evaluator
@@ -280,6 +374,13 @@ export function Navbar() {
                     </DropdownMenuItem>
                   </>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/privacy-settings" data-ocid="nav.privacy_link">
+                    <ShieldCheck size={14} className="mr-2" />
+                    Privacy Settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={clear}
                   className="text-destructive focus:text-destructive"

@@ -1,14 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { UserRole } from "../backend";
 import type {
   AnswerSubmission,
+  BannedUser,
   CandidateProfile,
+  CheatingLog,
   Difficulty,
   InterviewSession,
+  PlatformStats,
   Question,
   UserProfile,
-  UserRole,
 } from "../backend.d";
 import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Queries
@@ -23,8 +27,6 @@ export function useGetAllQuestions() {
       try {
         return await actor.getAllQuestions();
       } catch (err) {
-        // Backend traps if user is not registered (e.g. anonymous actor or unregistered user).
-        // Return empty array instead of crashing the UI.
         console.warn(
           "getAllQuestions failed (user may not be registered):",
           err,
@@ -43,8 +45,7 @@ export function useGetSession(sessionId: bigint | null) {
     queryFn: async () => {
       if (!actor || sessionId === null) return null;
       try {
-        const result = await actor.getSession(sessionId);
-        return result;
+        return await actor.getSession(sessionId);
       } catch (err) {
         console.warn("getSession failed:", err);
         return null;
@@ -54,7 +55,6 @@ export function useGetSession(sessionId: bigint | null) {
     refetchInterval: 3000,
     retry: 6,
     retryDelay: 1000,
-    // staleTime 0 ensures we always re-fetch after navigation
     staleTime: 0,
   });
 }
@@ -68,7 +68,6 @@ export function useGetCallerUserProfile() {
       try {
         return await actor.getCallerUserProfile();
       } catch {
-        // unregistered user — profile not found
         return null;
       }
     },
@@ -85,7 +84,6 @@ export function useGetCallerRole() {
       try {
         return await actor.getCallerUserRole();
       } catch {
-        // unregistered user — treat as guest
         return "guest" as UserRole;
       }
     },
@@ -102,7 +100,6 @@ export function useIsCallerAdmin() {
       try {
         return await actor.isCallerAdmin();
       } catch {
-        // unregistered user — not admin
         return false;
       }
     },
@@ -120,11 +117,228 @@ export function useGetCandidateProfile(principal: string | null) {
         // @ts-ignore – principal string coercion handled by SDK
         return await actor.getCandidateProfile(principal as never);
       } catch {
-        // unregistered user — profile not found
         return null;
       }
     },
     enabled: !!actor && !isFetching && !!principal,
+  });
+}
+
+export function useGetCallerCandidateProfile() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  return useQuery<CandidateProfile | null>({
+    queryKey: ["callerCandidateProfile"],
+    queryFn: async () => {
+      if (!actor || !identity) return null;
+      try {
+        // @ts-ignore
+        return await actor.getCandidateProfile(
+          identity.getPrincipal() as never,
+        );
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching && !!identity,
+  });
+}
+
+export function useGetAllCandidateProfiles(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<Array<[string, CandidateProfile]>>({
+    queryKey: ["allCandidateProfiles"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        const result = await actor.getAllCandidateProfiles();
+        return result.map(([principal, profile]) => [
+          principal.toString(),
+          profile,
+        ]);
+      } catch (err) {
+        console.warn("getAllCandidateProfiles failed:", err);
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetAllUserProfiles(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<Array<[string, UserProfile]>>({
+    queryKey: ["allUserProfiles"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        const result = await actor.getAllUserProfiles();
+        return result.map(([principal, profile]) => [
+          principal.toString(),
+          profile,
+        ]);
+      } catch (err) {
+        console.warn("getAllUserProfiles failed:", err);
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetAllSessions(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<InterviewSession[]>({
+    queryKey: ["allSessions"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getAllSessions();
+      } catch (err) {
+        console.warn("getAllSessions failed:", err);
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetMySessions() {
+  const { actor, isFetching } = useActor();
+  return useQuery<InterviewSession[]>({
+    queryKey: ["mySessions"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getMySessions();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetPlatformStats(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<PlatformStats | null>({
+    queryKey: ["platformStats"],
+    queryFn: async () => {
+      if (!actor) return null;
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getPlatformStats();
+      } catch (err) {
+        console.warn("getPlatformStats failed:", err);
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetAllUserRoles(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<Array<[string, string]>>({
+    queryKey: ["allUserRoles"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        const result = await actor.getAllUserRoles();
+        return result.map(([p, r]) => [p.toString(), r]);
+      } catch (err) {
+        console.warn("getAllUserRoles failed:", err);
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetBannedUsers(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<BannedUser[]>({
+    queryKey: ["bannedUsers"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getBannedUsers();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetCheatingLogs(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<CheatingLog[]>({
+    queryKey: ["cheatingLogs"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getCheatingLogs();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetFlaggedSessions(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<InterviewSession[]>({
+    queryKey: ["flaggedSessions"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getFlaggedSessions();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetAllRoleRequests(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<import("../backend.d").RoleRequest[]>({
+    queryKey: ["allRoleRequests"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await (actor as any).getAllRoleRequests();
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
+  });
+}
+
+export function useGetGlobalDifficulty(enabled: boolean) {
+  const { actor, isFetching } = useActor();
+  return useQuery<string>({
+    queryKey: ["globalDifficulty"],
+    queryFn: async () => {
+      if (!actor) return "medium";
+      try {
+        // @ts-ignore -- new backend method not yet in generated wrapper
+        return await actor.getGlobalDifficulty();
+      } catch {
+        return "medium";
+      }
+    },
+    enabled: !!actor && !isFetching && enabled,
   });
 }
 
@@ -136,9 +350,9 @@ export function useSaveCallerUserProfile() {
   const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (profile: UserProfile) => {
+    mutationFn: async (profile: { name?: string }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.saveCallerUserProfile(profile);
+      return actor.updateCallerUserProfile(profile);
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["callerProfile"] });
@@ -157,12 +371,12 @@ export function useCreateCandidateProfile() {
       experienceLevel: string;
     }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.createCandidateProfile(
-        data.name,
-        data.email,
-        data.targetRole,
-        data.experienceLevel,
-      );
+      return actor.updateCandidateProfile({
+        name: data.name,
+        email: data.email,
+        targetRole: data.targetRole,
+        experienceLevel: data.experienceLevel,
+      });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["candidateProfile"] });
@@ -326,13 +540,13 @@ export function useAddQuestion() {
       tags: string[];
     }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.addQuestion(
-        data.title,
-        data.description,
-        data.category,
-        data.difficulty,
-        data.tags,
-      );
+      return actor.addQuestion({
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        difficulty: data.difficulty,
+        tags: data.tags,
+      });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["questions"] });
@@ -353,14 +567,13 @@ export function useUpdateQuestion() {
       tags: string[];
     }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.updateQuestion(
-        data.id,
-        data.title,
-        data.description,
-        data.category,
-        data.difficulty,
-        data.tags,
-      );
+      return actor.updateQuestion(data.id, {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        difficulty: data.difficulty,
+        tags: data.tags,
+      });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["questions"] });
@@ -452,6 +665,164 @@ export function useSelfRegisterAsUser() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["callerRole"] });
+      void qc.invalidateQueries({ queryKey: ["isAdmin"] });
+    },
+  });
+}
+
+export function useLogCheatingEvent() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async (data: {
+      sessionId: bigint;
+      eventType: string;
+      description: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.logCheatingEvent(
+        data.sessionId,
+        data.eventType,
+        data.description,
+      );
+    },
+  });
+}
+
+export function useDeleteMyAccount() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.deleteMyAccount();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries();
+    },
+  });
+}
+
+export function useSetGlobalDifficulty() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (diff: string) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.setGlobalDifficulty(diff as never);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["globalDifficulty"] });
+    },
+  });
+}
+
+export function useBanUser() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { principal: string; reason: string }) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.banUser(data.principal as never, data.reason);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["bannedUsers"] });
+      void qc.invalidateQueries({ queryKey: ["allUserRoles"] });
+      void qc.invalidateQueries({ queryKey: ["platformStats"] });
+    },
+  });
+}
+
+export function useUnbanUser() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (principal: string) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.unbanUser(principal as never);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["bannedUsers"] });
+      void qc.invalidateQueries({ queryKey: ["platformStats"] });
+    },
+  });
+}
+
+export function useSuspendUser() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { principal: string; reason: string }) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.suspendUser(data.principal as never, data.reason);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["allUserRoles"] });
+    },
+  });
+}
+
+export function useUnsuspendUser() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (principal: string) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.unsuspendUser(principal as never);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["allUserRoles"] });
+    },
+  });
+}
+
+export function usePromoteToRecruiter() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (principal: string) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.promoteToRecruiter(principal as never);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["allUserRoles"] });
+    },
+  });
+}
+
+export function useDemoteToUser() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (principal: string) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.demoteToUser(principal as never);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["allUserRoles"] });
+    },
+  });
+}
+
+export function usePromoteToAdmin() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (principal: string) => {
+      if (!actor) throw new Error("Not connected");
+      // @ts-ignore -- new backend method not yet in generated wrapper
+      return actor.promoteToAdminRole(principal as never);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["allUserRoles"] });
       void qc.invalidateQueries({ queryKey: ["isAdmin"] });
     },
   });

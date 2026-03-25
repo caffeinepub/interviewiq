@@ -25,6 +25,14 @@ export interface CandidateProfile {
   'extractedSkills' : Array<string>,
   'targetRole' : string,
 }
+export interface CandidateProfileUpdateInput {
+  'experienceLevel' : [] | [string],
+  'name' : [] | [string],
+  'email' : [] | [string],
+  'resumeText' : [] | [string],
+  'extractedSkills' : [] | [Array<string>],
+  'targetRole' : [] | [string],
+}
 export type Difficulty = { 'easy' : null } |
   { 'hard' : null } |
   { 'medium' : null };
@@ -54,28 +62,29 @@ export interface Question {
   'description' : string,
   'category' : string,
 }
+export interface QuestionInput {
+  'title' : string,
+  'difficulty' : Difficulty,
+  'tags' : Array<string>,
+  'description' : string,
+  'category' : string,
+}
 export interface SkillsAndResume {
   'resumeText' : string,
   'skills' : Array<string>,
 }
 export type Time = bigint;
 export interface UserProfile { 'name' : string }
+export interface UserProfileUpdateInput { 'name' : [] | [string] }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addOverallAssessment' : ActorMethod<[bigint, bigint, string], undefined>,
-  'addQuestion' : ActorMethod<
-    [string, string, string, Difficulty, Array<string>],
-    bigint
-  >,
+  'addQuestion' : ActorMethod<[QuestionInput], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'claimFirstAdmin' : ActorMethod<[], undefined>,
-  'createCandidateProfile' : ActorMethod<
-    [string, string, string, string],
-    undefined
-  >,
   'createInterviewSession' : ActorMethod<
     [Principal, Array<bigint>, bigint],
     bigint
@@ -84,7 +93,12 @@ export interface _SERVICE {
   'deleteQuestion' : ActorMethod<[bigint], undefined>,
   'flagSession' : ActorMethod<[bigint, string], undefined>,
   'getAdminAssigned' : ActorMethod<[], boolean>,
+  'getAllCandidateProfiles' : ActorMethod<
+    [],
+    Array<[Principal, CandidateProfile]>
+  >,
   'getAllQuestions' : ActorMethod<[], Array<Question>>,
+  'getAllUserProfiles' : ActorMethod<[], Array<[Principal, UserProfile]>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCandidateProfile' : ActorMethod<[Principal], [] | [CandidateProfile]>,
@@ -92,6 +106,8 @@ export interface _SERVICE {
     [[] | [string], [] | [Difficulty], [] | [string]],
     Array<Question>
   >,
+  'getQuestionsByCategory' : ActorMethod<[string], Array<Question>>,
+  'getQuestionsByIds' : ActorMethod<[Array<bigint>], Array<Question>>,
   'getResumeSkills' : ActorMethod<[Principal], [] | [SkillsAndResume]>,
   'getResumeSkillsDeprecated' : ActorMethod<
     [Principal],
@@ -101,18 +117,19 @@ export interface _SERVICE {
   'getSessionAnswers' : ActorMethod<[bigint], Array<AnswerSubmission>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'saveResumeSkills' : ActorMethod<[Array<string>, string], undefined>,
   'scoreAnswer' : ActorMethod<[bigint, bigint, bigint, string], undefined>,
   'scoreMockAnswer' : ActorMethod<[bigint, bigint, bigint, string], undefined>,
   'selfRegisterAsUser' : ActorMethod<[], undefined>,
   'startSession' : ActorMethod<[bigint], undefined>,
   'submitAnswer' : ActorMethod<[bigint, bigint, string, bigint], undefined>,
   'submitSession' : ActorMethod<[bigint], undefined>,
-  'updateQuestion' : ActorMethod<
-    [bigint, string, string, string, Difficulty, Array<string>],
+  'updateCallerUserProfile' : ActorMethod<[UserProfileUpdateInput], undefined>,
+  'updateCandidateProfile' : ActorMethod<
+    [CandidateProfileUpdateInput],
     undefined
   >,
+  'updateQuestion' : ActorMethod<[bigint, QuestionInput], undefined>,
+  'updateResumeSkills' : ActorMethod<[Array<string>, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

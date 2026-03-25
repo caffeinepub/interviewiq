@@ -1288,7 +1288,7 @@ export function StudentDashboard() {
     setIsSaving(true);
     try {
       if (actor && !isFetching) {
-        await actor.saveResumeSkills(subjects, effectiveText.slice(0, 5000));
+        await actor.updateResumeSkills(subjects, effectiveText.slice(0, 5000));
       }
       setDetectedSubjects(subjects);
       toast.success(

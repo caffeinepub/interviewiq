@@ -13,10 +13,25 @@ export const Difficulty = IDL.Variant({
   'hard' : IDL.Null,
   'medium' : IDL.Null,
 });
+export const QuestionInput = IDL.Record({
+  'title' : IDL.Text,
+  'difficulty' : Difficulty,
+  'tags' : IDL.Vec(IDL.Text),
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
+});
+export const CandidateProfile = IDL.Record({
+  'experienceLevel' : IDL.Text,
+  'name' : IDL.Text,
+  'email' : IDL.Text,
+  'resumeText' : IDL.Text,
+  'extractedSkills' : IDL.Vec(IDL.Text),
+  'targetRole' : IDL.Text,
 });
 export const Question = IDL.Record({
   'id' : IDL.Nat,
@@ -27,14 +42,6 @@ export const Question = IDL.Record({
   'category' : IDL.Text,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
-export const CandidateProfile = IDL.Record({
-  'experienceLevel' : IDL.Text,
-  'name' : IDL.Text,
-  'email' : IDL.Text,
-  'resumeText' : IDL.Text,
-  'extractedSkills' : IDL.Vec(IDL.Text),
-  'targetRole' : IDL.Text,
-});
 export const SkillsAndResume = IDL.Record({
   'resumeText' : IDL.Text,
   'skills' : IDL.Vec(IDL.Text),
@@ -67,22 +74,24 @@ export const AnswerSubmission = IDL.Record({
   'questionId' : IDL.Nat,
   'answerText' : IDL.Text,
 });
+export const UserProfileUpdateInput = IDL.Record({
+  'name' : IDL.Opt(IDL.Text),
+});
+export const CandidateProfileUpdateInput = IDL.Record({
+  'experienceLevel' : IDL.Opt(IDL.Text),
+  'name' : IDL.Opt(IDL.Text),
+  'email' : IDL.Opt(IDL.Text),
+  'resumeText' : IDL.Opt(IDL.Text),
+  'extractedSkills' : IDL.Opt(IDL.Vec(IDL.Text)),
+  'targetRole' : IDL.Opt(IDL.Text),
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addOverallAssessment' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Text], [], []),
-  'addQuestion' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, Difficulty, IDL.Vec(IDL.Text)],
-      [IDL.Nat],
-      [],
-    ),
+  'addQuestion' : IDL.Func([QuestionInput], [IDL.Nat], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'claimFirstAdmin' : IDL.Func([], [], []),
-  'createCandidateProfile' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
-      [],
-      [],
-    ),
   'createInterviewSession' : IDL.Func(
       [IDL.Principal, IDL.Vec(IDL.Nat), IDL.Nat],
       [IDL.Nat],
@@ -92,7 +101,17 @@ export const idlService = IDL.Service({
   'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
   'flagSession' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'getAdminAssigned' : IDL.Func([], [IDL.Bool], ['query']),
+  'getAllCandidateProfiles' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, CandidateProfile))],
+      ['query'],
+    ),
   'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
+  'getAllUserProfiles' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, UserProfile))],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCandidateProfile' : IDL.Func(
@@ -102,6 +121,16 @@ export const idlService = IDL.Service({
     ),
   'getFilteredQuestions' : IDL.Func(
       [IDL.Opt(IDL.Text), IDL.Opt(Difficulty), IDL.Opt(IDL.Text)],
+      [IDL.Vec(Question)],
+      ['query'],
+    ),
+  'getQuestionsByCategory' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Question)],
+      ['query'],
+    ),
+  'getQuestionsByIds' : IDL.Func(
+      [IDL.Vec(IDL.Nat)],
       [IDL.Vec(Question)],
       ['query'],
     ),
@@ -127,19 +156,16 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'saveResumeSkills' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
   'scoreAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
   'scoreMockAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
   'selfRegisterAsUser' : IDL.Func([], [], []),
   'startSession' : IDL.Func([IDL.Nat], [], []),
   'submitAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Text, IDL.Nat], [], []),
   'submitSession' : IDL.Func([IDL.Nat], [], []),
-  'updateQuestion' : IDL.Func(
-      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, Difficulty, IDL.Vec(IDL.Text)],
-      [],
-      [],
-    ),
+  'updateCallerUserProfile' : IDL.Func([UserProfileUpdateInput], [], []),
+  'updateCandidateProfile' : IDL.Func([CandidateProfileUpdateInput], [], []),
+  'updateQuestion' : IDL.Func([IDL.Nat, QuestionInput], [], []),
+  'updateResumeSkills' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -150,10 +176,25 @@ export const idlFactory = ({ IDL }) => {
     'hard' : IDL.Null,
     'medium' : IDL.Null,
   });
+  const QuestionInput = IDL.Record({
+    'title' : IDL.Text,
+    'difficulty' : Difficulty,
+    'tags' : IDL.Vec(IDL.Text),
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const CandidateProfile = IDL.Record({
+    'experienceLevel' : IDL.Text,
+    'name' : IDL.Text,
+    'email' : IDL.Text,
+    'resumeText' : IDL.Text,
+    'extractedSkills' : IDL.Vec(IDL.Text),
+    'targetRole' : IDL.Text,
   });
   const Question = IDL.Record({
     'id' : IDL.Nat,
@@ -164,14 +205,6 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
-  const CandidateProfile = IDL.Record({
-    'experienceLevel' : IDL.Text,
-    'name' : IDL.Text,
-    'email' : IDL.Text,
-    'resumeText' : IDL.Text,
-    'extractedSkills' : IDL.Vec(IDL.Text),
-    'targetRole' : IDL.Text,
-  });
   const SkillsAndResume = IDL.Record({
     'resumeText' : IDL.Text,
     'skills' : IDL.Vec(IDL.Text),
@@ -204,22 +237,22 @@ export const idlFactory = ({ IDL }) => {
     'questionId' : IDL.Nat,
     'answerText' : IDL.Text,
   });
+  const UserProfileUpdateInput = IDL.Record({ 'name' : IDL.Opt(IDL.Text) });
+  const CandidateProfileUpdateInput = IDL.Record({
+    'experienceLevel' : IDL.Opt(IDL.Text),
+    'name' : IDL.Opt(IDL.Text),
+    'email' : IDL.Opt(IDL.Text),
+    'resumeText' : IDL.Opt(IDL.Text),
+    'extractedSkills' : IDL.Opt(IDL.Vec(IDL.Text)),
+    'targetRole' : IDL.Opt(IDL.Text),
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addOverallAssessment' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Text], [], []),
-    'addQuestion' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, Difficulty, IDL.Vec(IDL.Text)],
-        [IDL.Nat],
-        [],
-      ),
+    'addQuestion' : IDL.Func([QuestionInput], [IDL.Nat], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'claimFirstAdmin' : IDL.Func([], [], []),
-    'createCandidateProfile' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
-        [],
-        [],
-      ),
     'createInterviewSession' : IDL.Func(
         [IDL.Principal, IDL.Vec(IDL.Nat), IDL.Nat],
         [IDL.Nat],
@@ -233,7 +266,17 @@ export const idlFactory = ({ IDL }) => {
     'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
     'flagSession' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'getAdminAssigned' : IDL.Func([], [IDL.Bool], ['query']),
+    'getAllCandidateProfiles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, CandidateProfile))],
+        ['query'],
+      ),
     'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
+    'getAllUserProfiles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, UserProfile))],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCandidateProfile' : IDL.Func(
@@ -243,6 +286,16 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getFilteredQuestions' : IDL.Func(
         [IDL.Opt(IDL.Text), IDL.Opt(Difficulty), IDL.Opt(IDL.Text)],
+        [IDL.Vec(Question)],
+        ['query'],
+      ),
+    'getQuestionsByCategory' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Question)],
+        ['query'],
+      ),
+    'getQuestionsByIds' : IDL.Func(
+        [IDL.Vec(IDL.Nat)],
         [IDL.Vec(Question)],
         ['query'],
       ),
@@ -268,19 +321,16 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'saveResumeSkills' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
     'scoreAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
     'scoreMockAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat, IDL.Text], [], []),
     'selfRegisterAsUser' : IDL.Func([], [], []),
     'startSession' : IDL.Func([IDL.Nat], [], []),
     'submitAnswer' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Text, IDL.Nat], [], []),
     'submitSession' : IDL.Func([IDL.Nat], [], []),
-    'updateQuestion' : IDL.Func(
-        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, Difficulty, IDL.Vec(IDL.Text)],
-        [],
-        [],
-      ),
+    'updateCallerUserProfile' : IDL.Func([UserProfileUpdateInput], [], []),
+    'updateCandidateProfile' : IDL.Func([CandidateProfileUpdateInput], [], []),
+    'updateQuestion' : IDL.Func([IDL.Nat, QuestionInput], [], []),
+    'updateResumeSkills' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
   });
 };
 

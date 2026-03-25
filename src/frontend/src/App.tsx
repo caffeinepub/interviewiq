@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
+import { useInactivityLogout } from "./hooks/useInactivityLogout";
 import { AdaptiveAssessmentPage } from "./pages/AdaptiveAssessmentPage";
 import { AdaptiveSession } from "./pages/AdaptiveSession";
 import { AdminDashboard } from "./pages/AdminDashboard";
@@ -16,20 +17,27 @@ import { AdmissionsPortal } from "./pages/AdmissionsPortal";
 import { AssessmentPage } from "./pages/AssessmentPage";
 import { AssessmentReport } from "./pages/AssessmentReport";
 import { AssessmentResults } from "./pages/AssessmentResults";
+import { AuthPage } from "./pages/AuthPage";
 import { CandidateDashboard } from "./pages/CandidateDashboard";
 import { CandidateReport } from "./pages/CandidateReport";
 import { EvaluatorDashboard } from "./pages/EvaluatorDashboard";
+import { GeminiInterviewResults } from "./pages/GeminiInterviewResults";
+import { GeminiInterviewSession } from "./pages/GeminiInterviewSession";
+import { GeminiInterviewSetup } from "./pages/GeminiInterviewSetup";
 import { InterviewAnswers } from "./pages/InterviewAnswers";
 import { InterviewSession } from "./pages/InterviewSession";
 import { LandingPage } from "./pages/LandingPage";
 import { MockInterviewSetup } from "./pages/MockInterviewSetup";
 import { OnboardingPage } from "./pages/OnboardingPage";
+import { PrivacySettingsPage } from "./pages/PrivacySettingsPage";
 import { QuestionBank } from "./pages/QuestionBank";
+import { RecruiterDashboard } from "./pages/RecruiterDashboard";
 import { StudentDashboard } from "./pages/StudentDashboard";
 
 // Root layout
-const rootRoute = createRootRoute({
-  component: () => (
+function RootLayout() {
+  useInactivityLogout();
+  return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       <main className="flex-1">
@@ -38,7 +46,11 @@ const rootRoute = createRootRoute({
       <Footer />
       <Toaster richColors position="top-right" />
     </div>
-  ),
+  );
+}
+
+const rootRoute = createRootRoute({
+  component: RootLayout,
 });
 
 // Routes
@@ -46,6 +58,12 @@ const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   component: LandingPage,
+});
+
+const authRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/auth",
+  component: AuthPage,
 });
 
 const onboardingRoute = createRoute({
@@ -82,6 +100,12 @@ const evaluatorRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/evaluator",
   component: EvaluatorDashboard,
+});
+
+const recruiterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/recruiter",
+  component: RecruiterDashboard,
 });
 
 const questionsRoute = createRoute({
@@ -150,15 +174,41 @@ const studentDashboardRoute = createRoute({
   component: StudentDashboard,
 });
 
+const privacySettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/privacy-settings",
+  component: PrivacySettingsPage,
+});
+
+const geminiInterviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/gemini-interview",
+  component: GeminiInterviewSetup,
+});
+
+const geminiInterviewSessionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/gemini-interview/session",
+  component: GeminiInterviewSession,
+});
+
+const geminiInterviewResultsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/gemini-interview/results",
+  component: GeminiInterviewResults,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
+  authRoute,
   onboardingRoute,
   candidateRoute,
   mockInterviewNewRoute,
   sessionRoute,
   sessionReportRoute,
   evaluatorRoute,
+  recruiterRoute,
   questionsRoute,
   interviewAnswersRoute,
   adminRoute,
@@ -170,6 +220,10 @@ const routeTree = rootRoute.addChildren([
   adaptiveSessionRoute,
   candidateReportRoute,
   studentDashboardRoute,
+  privacySettingsRoute,
+  geminiInterviewRoute,
+  geminiInterviewSessionRoute,
+  geminiInterviewResultsRoute,
 ]);
 
 const router = createRouter({ routeTree });
