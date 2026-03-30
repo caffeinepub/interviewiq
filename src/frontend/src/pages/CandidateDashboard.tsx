@@ -30,6 +30,7 @@ import {
   Clock,
   GraduationCap,
   Loader2,
+  MessageCircle,
   PlayCircle,
   ShieldCheck,
   Sparkles,
@@ -312,6 +313,45 @@ export function CandidateDashboard() {
             <Link to="/gemini-interview">
               <Sparkles size={16} />
               Start AI Interview
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* AI Interviewer Card */}
+      <Card className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-cyan-500/5 to-transparent overflow-hidden relative">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-cyan-500/10 blur-2xl" />
+        </div>
+        <CardHeader className="pb-3 relative">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400">
+              <MessageCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="font-display text-lg">
+                AI Interviewer
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Conversational interview — one question at a time, real feedback
+                after every answer
+              </CardDescription>
+            </div>
+            <Badge className="ml-auto bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs">
+              New
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Button
+            asChild
+            className="gap-2 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30"
+            variant="outline"
+            data-ocid="candidate.ai_interviewer_button"
+          >
+            <Link to="/ai-interviewer">
+              <MessageCircle size={16} />
+              Start Conversation
             </Link>
           </Button>
         </CardContent>

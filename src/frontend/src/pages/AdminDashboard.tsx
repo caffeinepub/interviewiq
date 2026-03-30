@@ -58,7 +58,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UserRole } from "../backend";
 import type { RoleRequest } from "../backend.d";
@@ -93,7 +93,7 @@ export function AdminDashboard() {
 
   const [registered, setRegistered] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     if (!actor || registered) return;
     void (async () => {
       try {
@@ -103,7 +103,7 @@ export function AdminDashboard() {
       }
       setRegistered(true);
     })();
-  });
+  }, [actor, registered]);
 
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery<boolean>({
     queryKey: ["isAdmin"],
@@ -206,11 +206,11 @@ export function AdminDashboard() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     if (!checkingAdmin && isAdmin === false) {
       void navigate({ to: "/admin" });
     }
-  });
+  }, [checkingAdmin, isAdmin, navigate]);
 
   const principalFull = identity
     ? identity.getPrincipal().toString()

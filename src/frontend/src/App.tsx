@@ -9,6 +9,8 @@ import {
 import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
 import { useInactivityLogout } from "./hooks/useInactivityLogout";
+import { AIInterviewerSession } from "./pages/AIInterviewerSession";
+import { AIInterviewerSetup } from "./pages/AIInterviewerSetup";
 import { AdaptiveAssessmentPage } from "./pages/AdaptiveAssessmentPage";
 import { AdaptiveSession } from "./pages/AdaptiveSession";
 import { AdminDashboard } from "./pages/AdminDashboard";
@@ -198,6 +200,18 @@ const geminiInterviewResultsRoute = createRoute({
   component: GeminiInterviewResults,
 });
 
+const aiInterviewerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/ai-interviewer",
+  component: AIInterviewerSetup,
+});
+
+const aiInterviewerSessionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/ai-interviewer/session",
+  component: AIInterviewerSession,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -224,6 +238,8 @@ const routeTree = rootRoute.addChildren([
   geminiInterviewRoute,
   geminiInterviewSessionRoute,
   geminiInterviewResultsRoute,
+  aiInterviewerRoute,
+  aiInterviewerSessionRoute,
 ]);
 
 const router = createRouter({ routeTree });

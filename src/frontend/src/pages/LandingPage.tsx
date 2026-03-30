@@ -9,6 +9,7 @@ import {
   Camera,
   CheckCircle2,
   Lock,
+  MessageCircle,
   Mic,
   Shield,
   Sparkles,
@@ -161,6 +162,17 @@ export function LandingPage() {
                   data-ocid="landing.admissions_button"
                 >
                   View Admissions
+                </Button>
+              </Link>
+              <Link to="/ai-interviewer">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-12 px-8 text-base font-semibold border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/10 gap-2"
+                  data-ocid="landing.ai_interviewer_button"
+                >
+                  <MessageCircle size={18} />
+                  AI Interviewer
                 </Button>
               </Link>
             </motion.div>
