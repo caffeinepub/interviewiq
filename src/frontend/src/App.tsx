@@ -31,10 +31,12 @@ import { InterviewSession } from "./pages/InterviewSession";
 import { LandingPage } from "./pages/LandingPage";
 import { MockInterviewSetup } from "./pages/MockInterviewSetup";
 import { OnboardingPage } from "./pages/OnboardingPage";
+import { PanelInterviewPage } from "./pages/PanelInterviewPage";
 import { PrivacySettingsPage } from "./pages/PrivacySettingsPage";
 import { QuestionBank } from "./pages/QuestionBank";
 import { RecruiterDashboard } from "./pages/RecruiterDashboard";
 import { StudentDashboard } from "./pages/StudentDashboard";
+import { VoiceInterviewPage } from "./pages/VoiceInterviewPage";
 
 // Root layout
 function RootLayout() {
@@ -200,6 +202,18 @@ const geminiInterviewResultsRoute = createRoute({
   component: GeminiInterviewResults,
 });
 
+const voiceInterviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/voice-interview",
+  component: VoiceInterviewPage,
+});
+
+const panelInterviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/panel-interview",
+  component: PanelInterviewPage,
+});
+
 const aiInterviewerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/ai-interviewer",
@@ -238,6 +252,8 @@ const routeTree = rootRoute.addChildren([
   geminiInterviewRoute,
   geminiInterviewSessionRoute,
   geminiInterviewResultsRoute,
+  voiceInterviewRoute,
+  panelInterviewRoute,
   aiInterviewerRoute,
   aiInterviewerSessionRoute,
 ]);

@@ -5,15 +5,19 @@ import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
+  Bot,
+  Brain,
   BrainCircuit,
   Camera,
   CheckCircle2,
   Lock,
   MessageCircle,
   Mic,
+  Mic2,
   Shield,
   Sparkles,
   TrendingUp,
+  Users2,
   Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -34,8 +38,8 @@ const features = [
     description:
       "Live webcam monitoring, screen share tracking, and tab-switch detection ensure a fair, secure assessment environment throughout.",
     color: "text-cyan-400",
-    bg: "bg-cyan/10",
-    border: "border-cyan/20",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/20",
   },
   {
     icon: <Lock className="h-5 w-5" />,
@@ -43,14 +47,50 @@ const features = [
     description:
       "All session data, scores, and reports are stored on the Internet Computer blockchain — tamper-proof, decentralized, zero server costs.",
     color: "text-violet-400",
-    bg: "bg-violet/10",
-    border: "border-violet/20",
+    bg: "bg-violet-500/10",
+    border: "border-violet-500/20",
   },
   {
     icon: <Mic className="h-5 w-5" />,
     title: "Verbal Mode",
     description:
       "Enable speech-to-text answering and text-to-speech question reading. Evaluate communication skills in a multi-format assessment.",
+    color: "text-success",
+    bg: "bg-success/10",
+    border: "border-success/20",
+  },
+  {
+    icon: <Sparkles className="h-5 w-5" />,
+    title: "Gemini AI Interview",
+    description:
+      "Dynamic adaptive questions generated in real-time by Google Gemini AI. Each session is unique with follow-ups tailored to your answers.",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
+  },
+  {
+    icon: <Mic2 className="h-5 w-5" />,
+    title: "Voice Interview",
+    description:
+      "Speak naturally with AI. Questions are read aloud and your voice responses are transcribed and evaluated in real-time.",
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/20",
+  },
+  {
+    icon: <Bot className="h-5 w-5" />,
+    title: "AI Interviewer",
+    description:
+      "One question at a time, strict professional AI interviewer that adapts difficulty and gives instant feedback on every answer.",
+    color: "text-violet-400",
+    bg: "bg-violet-500/10",
+    border: "border-violet-500/20",
+  },
+  {
+    icon: <Users2 className="h-5 w-5" />,
+    title: "Panel Interview",
+    description:
+      "Realistic HR, Technical, and Manager interview rotation. Resume-based personalized questions with real-time speech feedback.",
     color: "text-success",
     bg: "bg-success/10",
     border: "border-success/20",
@@ -64,6 +104,53 @@ const stats = [
   { value: "100%", label: "On-Chain", icon: <Lock size={16} /> },
 ];
 
+const interviewModes = [
+  {
+    title: "Standard Assessment",
+    description: "5 auto-selected questions, 30 min timed, instant results.",
+    to: "/assessment",
+    icon: <Brain className="h-6 w-6" />,
+    cta: "Start Now",
+    badge: "Classic",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
+  },
+  {
+    title: "AI Adaptive",
+    description: "Difficulty adjusts in real-time based on your performance.",
+    to: "/adaptive-assessment",
+    icon: <Sparkles className="h-6 w-6" />,
+    cta: "Try Adaptive",
+    badge: "Smart",
+    color: "text-violet-400",
+    bg: "bg-violet-500/10",
+    border: "border-violet-500/20",
+  },
+  {
+    title: "Gemini AI",
+    description: "Generative questions unique to your role, powered by Gemini.",
+    to: "/gemini-interview",
+    icon: <Sparkles className="h-6 w-6" />,
+    cta: "Try Gemini",
+    badge: "Generative",
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/20",
+  },
+  {
+    title: "Voice Interview",
+    description: "Speak your answers. AI evaluates clarity and confidence.",
+    to: "/voice-interview",
+    icon: <Mic2 className="h-6 w-6" />,
+    cta: "Try Voice",
+    badge: "Spoken",
+    color: "text-success",
+    bg: "bg-success/10",
+    border: "border-success/20",
+  },
+];
+
 const steps = [
   {
     num: "01",
@@ -73,12 +160,12 @@ const steps = [
   {
     num: "02",
     title: "Choose Mode",
-    desc: "Standard or AI-adaptive assessment",
+    desc: "Standard, AI adaptive, Gemini, voice, or panel",
   },
   {
     num: "03",
     title: "Take the Test",
-    desc: "30-min timed session with proctoring",
+    desc: "Timed session with proctoring and AI evaluation",
   },
   {
     num: "04",
@@ -92,7 +179,6 @@ export function LandingPage() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="relative overflow-hidden gradient-hero min-h-[88vh] flex items-center">
-        {/* Background grid */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -233,7 +319,7 @@ export function LandingPage() {
         >
           <Badge
             variant="outline"
-            className="mb-4 border-primary/30 bg-primary/8 text-primary"
+            className="mb-4 border-primary/30 bg-primary/5 text-primary"
           >
             Core Features
           </Badge>
@@ -248,14 +334,20 @@ export function LandingPage() {
           </p>
         </motion.div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
           {features.map((feat, i) => (
             <motion.div
-              key={feat.title}
+              key={
+                feat.title === "Adaptive AI Engine"
+                  ? "feat-adaptive"
+                  : feat.title === "Voice Interview"
+                    ? "feat-voice"
+                    : feat.title
+              }
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.07 }}
             >
               <Card
                 className={`h-full border ${feat.border} hover:shadow-glow transition-all duration-300 bg-card/80`}
@@ -266,7 +358,7 @@ export function LandingPage() {
                   >
                     {feat.icon}
                   </div>
-                  <h3 className="font-display font-bold text-lg mb-2">
+                  <h3 className="font-display font-bold text-base mb-2">
                     {feat.title}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
@@ -279,47 +371,193 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
+      {/* Interview Modes Section */}
       <section className="border-y border-border/40 bg-card/30 py-24">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
+            <Badge
+              variant="outline"
+              className="mb-4 border-primary/30 bg-primary/5 text-primary"
+            >
+              Interview Formats
+            </Badge>
             <h2 className="font-display text-4xl font-bold tracking-tight mb-4">
-              How it works
+              Multiple Interview Formats
             </h2>
-            <p className="text-muted-foreground text-lg">
-              From sign-in to report in under 35 minutes.
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Choose the format that matches your preparation goal — from quick
+              standard tests to fully conversational AI sessions.
             </p>
           </motion.div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step, i) => (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {interviewModes.map((mode, i) => (
               <motion.div
-                key={step.num}
+                key={mode.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="relative"
               >
-                {i < steps.length - 1 && (
-                  <div className="absolute top-6 left-full hidden lg:block w-full h-px bg-gradient-to-r from-border to-transparent z-0" />
-                )}
-                <div className="relative z-10">
-                  <div className="font-display text-5xl font-black text-primary/20 mb-3">
-                    {step.num}
-                  </div>
-                  <h3 className="font-display font-bold text-xl mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">{step.desc}</p>
-                </div>
+                <Card
+                  className={`h-full border ${mode.border} hover:shadow-md transition-all group`}
+                >
+                  <CardContent className="p-6 flex flex-col h-full">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl ${mode.bg} ${mode.color} mb-4`}
+                    >
+                      {mode.icon}
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-display font-bold text-base">
+                        {mode.title}
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${mode.color} border-current/20`}
+                      >
+                        {mode.badge}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
+                      {mode.description}
+                    </p>
+                    <Link to={mode.to}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={`w-full gap-1.5 border-current/30 ${mode.color} hover:bg-current/5`}
+                        data-ocid={`landing.mode_${i + 1}_button`}
+                      >
+                        {mode.cta}
+                        <ArrowRight size={13} />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="container py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="font-display text-4xl font-bold tracking-tight mb-4">
+            How it works
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            From sign-in to report in under 35 minutes.
+          </p>
+        </motion.div>
+
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((step, i) => (
+            <motion.div
+              key={step.num}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="relative"
+            >
+              {i < steps.length - 1 && (
+                <div className="absolute top-6 left-full hidden lg:block w-full h-px bg-gradient-to-r from-border to-transparent z-0" />
+              )}
+              <div className="relative z-10">
+                <div className="font-display text-5xl font-black text-primary/20 mb-3">
+                  {step.num}
+                </div>
+                <h3 className="font-display font-bold text-xl mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-muted-foreground text-sm">{step.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Security section */}
+      <section className="border-y border-border/40 bg-card/30 py-16">
+        <div className="container">
+          <div className="flex flex-col md:flex-row items-center gap-10">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex-1"
+            >
+              <Badge
+                variant="outline"
+                className="mb-4 border-primary/30 bg-primary/5 text-primary"
+              >
+                Security & Privacy
+              </Badge>
+              <h2 className="font-display text-3xl font-bold mb-4">
+                Built for trust, transparency,
+                <br />
+                and integrity.
+              </h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Every score, every answer, every result is stored on the
+                Internet Computer blockchain. No admin can alter your scores. No
+                server can be hacked. Your data is yours.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex-1 grid grid-cols-2 gap-4"
+            >
+              {[
+                {
+                  icon: Shield,
+                  label: "Role-Based Access",
+                  desc: "Admin, Evaluator, Candidate",
+                },
+                {
+                  icon: Lock,
+                  label: "On-Chain Storage",
+                  desc: "Tamper-proof, immutable",
+                },
+                {
+                  icon: Camera,
+                  label: "Live Proctoring",
+                  desc: "Camera + screen monitoring",
+                },
+                {
+                  icon: CheckCircle2,
+                  label: "Instant Reports",
+                  desc: "Automated scoring + feedback",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/60 p-4"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <item.icon size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>

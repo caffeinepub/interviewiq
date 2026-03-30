@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   BookOpen,
+  Bot,
   Brain,
   BrainCircuit,
   Briefcase,
@@ -21,6 +22,8 @@ import {
   Loader2,
   LogIn,
   LogOut,
+  MessageCircle,
+  Mic2,
   PlayCircle,
   Shield,
   ShieldCheck,
@@ -28,6 +31,7 @@ import {
   GraduationCap as StudentIcon,
   User,
   Users,
+  Users2,
 } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useIsCallerAdmin } from "../hooks/useQueries";
@@ -43,7 +47,11 @@ function PortalSwitcher({ isAdmin }: { isAdmin: boolean | undefined }) {
     location.pathname.startsWith("/session") ||
     location.pathname.startsWith("/student-dashboard") ||
     location.pathname.startsWith("/mock-interview") ||
-    location.pathname.startsWith("/onboarding");
+    location.pathname.startsWith("/onboarding") ||
+    location.pathname.startsWith("/gemini-interview") ||
+    location.pathname.startsWith("/voice-interview") ||
+    location.pathname.startsWith("/ai-interviewer") ||
+    location.pathname.startsWith("/panel-interview");
 
   const isEvaluator =
     location.pathname.startsWith("/evaluator") ||
@@ -153,13 +161,6 @@ export function Navbar() {
                 ocid="nav.dashboard_link"
               />
               <NavLink
-                to="/student-dashboard"
-                label="My Learning"
-                icon={<StudentIcon size={15} />}
-                active={location.pathname === "/student-dashboard"}
-                ocid="nav.student_link"
-              />
-              <NavLink
                 to="/assessment"
                 label="Assessment"
                 icon={<Brain size={15} />}
@@ -170,29 +171,8 @@ export function Navbar() {
                 ocid="nav.assessment_link"
               />
               <NavLink
-                to="/adaptive-assessment"
-                label="Adaptive"
-                icon={<Sparkles size={15} />}
-                active={location.pathname.startsWith("/adaptive")}
-                ocid="nav.adaptive_link"
-              />
-              <NavLink
-                to="/mock-interview/new"
-                label="Mock Interview"
-                icon={<PlayCircle size={15} />}
-                active={location.pathname.startsWith("/mock-interview")}
-                ocid="nav.mock_link"
-              />
-              <NavLink
-                to="/interview-answers"
-                label="Answer Guide"
-                icon={<Lightbulb size={15} />}
-                active={location.pathname === "/interview-answers"}
-                ocid="nav.answers_link"
-              />
-              <NavLink
                 to="/admin"
-                label="Admin Portal"
+                label="Admin"
                 icon={<Shield size={15} />}
                 active={location.pathname.startsWith("/admin")}
                 ocid="nav.admin_link"
@@ -228,17 +208,10 @@ export function Navbar() {
               />
               <NavLink
                 to="/questions"
-                label="Question Bank"
+                label="Questions"
                 icon={<BookOpen size={15} />}
                 active={location.pathname === "/questions"}
                 ocid="nav.questions_link"
-              />
-              <NavLink
-                to="/interview-answers"
-                label="Answer Guide"
-                icon={<Lightbulb size={15} />}
-                active={location.pathname === "/interview-answers"}
-                ocid="nav.answers_link"
               />
             </>
           )}
@@ -273,7 +246,7 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-52"
+                className="w-56"
                 data-ocid="nav.dropdown_menu"
               >
                 <DropdownMenuItem asChild>
@@ -300,12 +273,6 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/recruiter" data-ocid="nav.recruiter_link">
-                        <Briefcase size={14} className="mr-2" />
-                        Recruiter Portal
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link to="/assessment" data-ocid="nav.assessment_link">
                         <Brain size={14} className="mr-2" />
                         Assessment
@@ -320,6 +287,41 @@ export function Navbar() {
                         Adaptive Mode
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/gemini-interview" data-ocid="nav.gemini_link">
+                        <Sparkles size={14} className="mr-2 text-primary" />
+                        Gemini AI Interview
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/voice-interview" data-ocid="nav.voice_link">
+                        <Mic2 size={14} className="mr-2 text-cyan-400" />
+                        Voice Interview
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/ai-interviewer"
+                        data-ocid="nav.ai_interviewer_link"
+                      >
+                        <Bot size={14} className="mr-2 text-violet-400" />
+                        AI Interviewer
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/panel-interview" data-ocid="nav.panel_link">
+                        <Users2 size={14} className="mr-2 text-success" />
+                        Panel Interview
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/mock-interview/new" data-ocid="nav.mock_link">
+                        <PlayCircle size={14} className="mr-2" />
+                        Mock Interview
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link
                         to="/interview-answers"
@@ -327,6 +329,12 @@ export function Navbar() {
                       >
                         <Lightbulb size={14} className="mr-2" />
                         Answer Guide
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/recruiter" data-ocid="nav.recruiter_link">
+                        <Briefcase size={14} className="mr-2" />
+                        Recruiter Portal
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -342,7 +350,7 @@ export function Navbar() {
                     <DropdownMenuItem asChild>
                       <Link to="/admin/dashboard" data-ocid="nav.admin_link">
                         <Shield size={14} className="mr-2" />
-                        Admin Portal
+                        Admin Dashboard
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -370,6 +378,34 @@ export function Navbar() {
                       >
                         <Lightbulb size={14} className="mr-2" />
                         Answer Guide
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/gemini-interview" data-ocid="nav.gemini_link">
+                        <Sparkles size={14} className="mr-2 text-primary" />
+                        Gemini AI Interview
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/voice-interview" data-ocid="nav.voice_link">
+                        <Mic2 size={14} className="mr-2 text-cyan-400" />
+                        Voice Interview
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/ai-interviewer"
+                        data-ocid="nav.ai_interviewer_link"
+                      >
+                        <Bot size={14} className="mr-2 text-violet-400" />
+                        AI Interviewer
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/panel-interview" data-ocid="nav.panel_link">
+                        <Users2 size={14} className="mr-2 text-success" />
+                        Panel Interview
                       </Link>
                     </DropdownMenuItem>
                   </>
