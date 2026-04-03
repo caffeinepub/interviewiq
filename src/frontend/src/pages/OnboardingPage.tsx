@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -49,10 +50,33 @@ const experienceLevels = [
   { value: "lead", label: "Lead / Principal (8+ years)" },
 ];
 
+type SaveStep =
+  | "idle"
+  | "registering"
+  | "saving-profile"
+  | "creating-candidate"
+  | "done";
+
+const stepLabel: Record<SaveStep, string> = {
+  idle: "",
+  registering: "Step 1/3: Registering account…",
+  "saving-profile": "Step 2/3: Saving profile…",
+  "creating-candidate": "Step 3/3: Creating candidate profile…",
+  done: "All done!",
+};
+
+const stepProgress: Record<SaveStep, number> = {
+  idle: 0,
+  registering: 20,
+  "saving-profile": 55,
+  "creating-candidate": 80,
+  done: 100,
+};
+
 export function OnboardingPage() {
   const navigate = useNavigate();
-  const { identity } = useInternetIdentity();
-  const { actor } = useActor();
+  const { identity, isInitializing } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
   const { data: isAdmin, isLoading: checkingAdmin } = useIsCallerAdmin();
   const { data: existingProfile, isLoading: checkingProfile } =
     useGetCallerUserProfile();
@@ -68,6 +92,7 @@ export function OnboardingPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saveError, setSaveError] = useState("");
+  const [saveStep, setSaveStep] = useState<SaveStep>("idle");
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -90,46 +115,90 @@ export function OnboardingPage() {
     setErrors({});
     setSaveError("");
 
+    // Guard: must be authenticated with a real identity
+    if (!identity) {
+      setSaveError("Please sign in before saving your profile.");
+      toast.error("Please sign in before saving your profile.");
+      return;
+    }
+
+    // Guard: actor must be ready and not still fetching
+    if (!actor || actorFetching) {
+      setSaveError("Please wait for authentication to complete before saving.");
+      toast.error(
+        "Authentication still loading — please wait a moment and try again.",
+      );
+      return;
+    }
+
     try {
-      // Step 1: Ensure the caller is registered. The backend now auto-registers
-      // inside saveCallerUserProfile and createCandidateProfile, but we still
-      // call selfRegisterAsUser explicitly for safety.
-      if (actor) {
-        try {
-          await actor.selfRegisterAsUser();
-        } catch {
-          // already registered — safe to continue
-        }
+      // Step 1: Register the caller as a user
+      setSaveStep("registering");
+      try {
+        await actor.selfRegisterAsUser();
+      } catch {
+        // Already registered — safe to continue
       }
 
-      // Step 2: Wait for canister state to settle after registration
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Wait for canister state to settle after registration
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Step 3: Save user profile (name only)
-      await saveProfile.mutateAsync({ name: form.name });
+      // Step 2: Save user profile (display name)
+      setSaveStep("saving-profile");
+      try {
+        await saveProfile.mutateAsync({ name: form.name });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("Unauthorized") || msg.includes("not registered")) {
+          throw new Error(
+            "Authorization failed on profile save. Please sign out, sign back in, and try again.",
+          );
+        }
+        throw err;
+      }
 
-      // Step 4: Save full candidate profile
-      await createCandidate.mutateAsync(form);
+      // Brief pause so the canister write is visible to the next call
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
+      // Step 3: Save full candidate profile
+      setSaveStep("creating-candidate");
+      try {
+        await createCandidate.mutateAsync(form);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("Unauthorized") || msg.includes("not registered")) {
+          throw new Error(
+            "Authorization failed on candidate profile save. Please sign out, sign back in, and try again.",
+          );
+        }
+        throw err;
+      }
+
+      setSaveStep("done");
       toast.success("Profile saved! Welcome to InterviewIQ.");
+      await new Promise((resolve) => setTimeout(resolve, 600));
       await navigate({ to: "/candidate" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const friendly = message.includes("Unauthorized")
-        ? "Authorization failed. Please sign out, sign back in, and try again."
+      const friendly = message.includes("Authorization failed")
+        ? message
         : message.includes("network") || message.includes("fetch")
           ? "Network error. Check your connection and try again."
-          : "Failed to save profile. Please try again.";
+          : message.includes("Not connected")
+            ? "Actor not ready. Please wait a moment and try again."
+            : `Failed to save profile: ${message}`;
       setSaveError(friendly);
+      setSaveStep("idle");
       toast.error(friendly);
-      console.error(err);
+      console.error("OnboardingPage handleSubmit error:", err);
     }
   };
 
-  const isLoading = checkingAdmin || checkingProfile;
-  const isPending = createCandidate.isPending || saveProfile.isPending;
+  const isLoading = isInitializing || checkingAdmin || checkingProfile;
+  const isSaving = saveStep !== "idle" && saveStep !== "done";
 
-  if (!identity) {
+  // ─── Not signed in ───────────────────────────────────────────────────────
+  if (!identity && !isInitializing) {
     return (
       <div className="container flex min-h-[60vh] items-center justify-center">
         <Card className="w-full max-w-md border-border/60">
@@ -144,14 +213,19 @@ export function OnboardingPage() {
     );
   }
 
+  // ─── Loading ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="container flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading your profile…</p>
+        </div>
       </div>
     );
   }
 
+  // ─── Already admin ────────────────────────────────────────────────────────
   if (isAdmin) {
     return (
       <div className="container flex min-h-[60vh] items-center justify-center py-16">
@@ -170,6 +244,7 @@ export function OnboardingPage() {
             <Button
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={() => navigate({ to: "/admin/dashboard" })}
+              data-ocid="onboarding.go_dashboard_button"
             >
               Go to Admin Dashboard
             </Button>
@@ -179,6 +254,7 @@ export function OnboardingPage() {
     );
   }
 
+  // ─── Profile already exists ───────────────────────────────────────────────
   if (existingProfile) {
     return (
       <div className="container flex min-h-[60vh] items-center justify-center py-16">
@@ -197,6 +273,7 @@ export function OnboardingPage() {
             <Button
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={() => navigate({ to: "/candidate" })}
+              data-ocid="onboarding.go_dashboard_button"
             >
               Go to Dashboard
             </Button>
@@ -206,6 +283,7 @@ export function OnboardingPage() {
     );
   }
 
+  // ─── Onboarding form ──────────────────────────────────────────────────────
   return (
     <div className="container py-16 flex items-center justify-center min-h-[calc(100vh-8rem)]">
       <div className="w-full max-w-lg">
@@ -221,6 +299,37 @@ export function OnboardingPage() {
             experience.
           </p>
         </div>
+
+        {/* Save progress indicator */}
+        {isSaving && (
+          <div
+            className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3"
+            data-ocid="onboarding.loading_state"
+          >
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
+              <p className="text-sm font-medium text-primary">
+                {stepLabel[saveStep]}
+              </p>
+            </div>
+            <Progress value={stepProgress[saveStep]} className="h-1.5" />
+            <p className="text-xs text-muted-foreground">
+              Please do not close this page while saving.
+            </p>
+          </div>
+        )}
+
+        {saveStep === "done" && (
+          <div
+            className="mb-6 rounded-lg border border-green-500/30 bg-green-500/5 p-4 flex items-center gap-2"
+            data-ocid="onboarding.success_state"
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+            <p className="text-sm font-medium text-green-400">
+              Profile saved! Redirecting to dashboard…
+            </p>
+          </div>
+        )}
 
         <Card className="border-border/60 shadow-sm">
           <CardHeader className="pb-4">
@@ -242,6 +351,7 @@ export function OnboardingPage() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, name: e.target.value }))
                   }
+                  disabled={isSaving}
                   data-ocid="onboarding.name_input"
                   className={errors.name ? "border-destructive" : ""}
                 />
@@ -265,6 +375,7 @@ export function OnboardingPage() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, email: e.target.value }))
                   }
+                  disabled={isSaving}
                   data-ocid="onboarding.email_input"
                   className={errors.email ? "border-destructive" : ""}
                 />
@@ -285,6 +396,7 @@ export function OnboardingPage() {
                   onValueChange={(v) =>
                     setForm((p) => ({ ...p, targetRole: v }))
                   }
+                  disabled={isSaving}
                 >
                   <SelectTrigger
                     id="targetRole"
@@ -318,6 +430,7 @@ export function OnboardingPage() {
                   onValueChange={(v) =>
                     setForm((p) => ({ ...p, experienceLevel: v }))
                   }
+                  disabled={isSaving}
                 >
                   <SelectTrigger
                     id="experienceLevel"
@@ -355,13 +468,13 @@ export function OnboardingPage() {
               <Button
                 type="submit"
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                disabled={isPending}
+                disabled={isSaving || saveStep === "done"}
                 data-ocid="onboarding.submit_button"
               >
-                {isPending ? (
+                {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving profile…
+                    {stepLabel[saveStep]}
                   </>
                 ) : (
                   "Complete Setup"
@@ -370,6 +483,19 @@ export function OnboardingPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Actor readiness hint */}
+        {!actorFetching && !actor && identity && (
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Connecting to ICP network… Please wait before submitting.
+          </p>
+        )}
+        {actorFetching && (
+          <p className="mt-3 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Initializing secure connection…
+          </p>
+        )}
       </div>
     </div>
   );
