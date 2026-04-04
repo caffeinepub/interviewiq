@@ -39,6 +39,7 @@ import {
   ShieldOff,
   Users,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Difficulty } from "../backend.d";
@@ -170,10 +171,12 @@ export function RecruiterDashboard() {
   if (role !== "recruiter" && role !== "admin") {
     return (
       <div
-        className="container flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center"
+        className="container flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center"
         data-ocid="recruiter.error_state"
       >
-        <ShieldOff className="h-12 w-12 text-muted-foreground/40" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/30 text-muted-foreground">
+          <ShieldOff className="h-8 w-8" />
+        </div>
         <h2 className="font-display text-xl font-bold">Access Denied</h2>
         <p className="text-sm text-muted-foreground max-w-sm">
           This portal is for Recruiters only. Contact an admin to request
@@ -186,34 +189,45 @@ export function RecruiterDashboard() {
   return (
     <div className="container py-10 max-w-5xl space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-          <Briefcase className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold tracking-tight">
-              Recruiter Portal
-            </h1>
-            <Badge
-              variant="outline"
-              className="border-primary/30 text-primary bg-primary/5 text-xs"
-              data-ocid="recruiter.role_badge"
-            >
-              {role === "admin" ? "Admin" : "Recruiter"}
-            </Badge>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-2xl glass-card gradient-border-blue p-7"
+      >
+        <div className="orb orb-blue w-48 h-48 -top-12 -right-12" />
+        <div className="flex items-center gap-4 relative">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-glow text-white shrink-0">
+            <Briefcase className="h-6 w-6" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            Create questions, review candidates, and track performance
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-2xl font-black tracking-tight">
+                Recruiter Portal
+              </h1>
+              <Badge
+                variant="outline"
+                className="border-primary/40 text-primary bg-primary/10 text-xs backdrop-blur-sm"
+                data-ocid="recruiter.role_badge"
+              >
+                {role === "admin" ? "Admin" : "Recruiter"}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Create questions, review candidates, and track performance
+            </p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       <Tabs defaultValue="questions">
-        <TabsList className="w-full max-w-md" data-ocid="recruiter.tab">
+        <TabsList
+          className="w-full max-w-md glass-card border-white/10"
+          data-ocid="recruiter.tab"
+        >
           <TabsTrigger
             value="questions"
-            className="flex-1"
+            className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
             data-ocid="recruiter.questions_tab"
           >
             <BookOpen className="h-3.5 w-3.5 mr-1.5" />
@@ -221,7 +235,7 @@ export function RecruiterDashboard() {
           </TabsTrigger>
           <TabsTrigger
             value="responses"
-            className="flex-1"
+            className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
             data-ocid="recruiter.responses_tab"
           >
             <Users className="h-3.5 w-3.5 mr-1.5" />
@@ -229,7 +243,7 @@ export function RecruiterDashboard() {
           </TabsTrigger>
           <TabsTrigger
             value="analytics"
-            className="flex-1"
+            className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
             data-ocid="recruiter.analytics_tab"
           >
             <BarChart2 className="h-3.5 w-3.5 mr-1.5" />
@@ -240,12 +254,14 @@ export function RecruiterDashboard() {
         {/* Create Questions Tab */}
         <TabsContent value="questions" className="mt-6 space-y-6">
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="recruiter.create_question_card"
           >
             <CardHeader>
               <div className="flex items-center gap-2">
-                <PlusCircle className="h-4 w-4 text-primary" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <PlusCircle className="h-4 w-4" />
+                </div>
                 <CardTitle className="text-base">Add New Question</CardTitle>
               </div>
             </CardHeader>
@@ -257,6 +273,11 @@ export function RecruiterDashboard() {
                     variant={qType === "open" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setQType("open")}
+                    className={
+                      qType === "open"
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white btn-glow"
+                        : "border-white/20 bg-white/5"
+                    }
                     data-ocid="recruiter.open_type_button"
                   >
                     Open-Ended
@@ -266,6 +287,11 @@ export function RecruiterDashboard() {
                     variant={qType === "mcq" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setQType("mcq")}
+                    className={
+                      qType === "mcq"
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white btn-glow"
+                        : "border-white/20 bg-white/5"
+                    }
                     data-ocid="recruiter.mcq_type_button"
                   >
                     MCQ
@@ -279,6 +305,7 @@ export function RecruiterDashboard() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Explain the difference between REST and GraphQL"
+                    className="bg-background/40 border-white/10 focus:border-primary/50 focus:shadow-glow"
                     data-ocid="recruiter.title_input"
                   />
                 </div>
@@ -290,7 +317,7 @@ export function RecruiterDashboard() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Full question text..."
-                    className="min-h-[100px]"
+                    className="min-h-[100px] bg-background/40 border-white/10 focus:border-primary/50 focus:shadow-glow"
                     data-ocid="recruiter.description_textarea"
                   />
                 </div>
@@ -315,7 +342,7 @@ export function RecruiterDashboard() {
                               setOptions(newOpts);
                             }}
                             placeholder={`Option ${["A", "B", "C", "D"][i]}`}
-                            className="flex-1 h-8 text-sm"
+                            className="flex-1 h-8 text-sm bg-background/40 border-white/10"
                             data-ocid={`recruiter.option_input.${i + 1}`}
                           />
                           {i === correctOption && (
@@ -338,6 +365,7 @@ export function RecruiterDashboard() {
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       placeholder="e.g. System Design"
+                      className="bg-background/40 border-white/10 focus:border-primary/50"
                       data-ocid="recruiter.category_input"
                     />
                   </div>
@@ -347,7 +375,10 @@ export function RecruiterDashboard() {
                       value={difficulty}
                       onValueChange={(v) => setDifficulty(v as Difficulty)}
                     >
-                      <SelectTrigger data-ocid="recruiter.difficulty_select">
+                      <SelectTrigger
+                        className="glass-card border-white/10"
+                        data-ocid="recruiter.difficulty_select"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -368,6 +399,7 @@ export function RecruiterDashboard() {
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="e.g. api, backend, architecture"
+                    className="bg-background/40 border-white/10 focus:border-primary/50"
                     data-ocid="recruiter.tags_input"
                   />
                 </div>
@@ -375,7 +407,7 @@ export function RecruiterDashboard() {
                 <Button
                   type="submit"
                   disabled={addQuestion.isPending}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white btn-glow font-semibold"
                   data-ocid="recruiter.submit_button"
                 >
                   {addQuestion.isPending ? (
@@ -395,12 +427,15 @@ export function RecruiterDashboard() {
           </Card>
 
           {/* Existing Questions */}
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Question Bank</CardTitle>
                 {questions && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-primary/30 text-primary bg-primary/10"
+                  >
                     {questions.length} questions
                   </Badge>
                 )}
@@ -424,23 +459,32 @@ export function RecruiterDashboard() {
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {questions.map((q, idx) => (
-                    <div
+                    <motion.div
                       key={String(q.id)}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-border/40 px-3 py-2"
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-background/30 px-4 py-3 hover:border-primary/30 transition-colors"
                       data-ocid={`recruiter.item.${idx + 1}`}
                     >
                       <p className="text-sm font-medium truncate flex-1">
                         {q.title}
                       </p>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <Badge variant="outline" className="text-xs capitalize">
+                        <Badge
+                          variant="outline"
+                          className="text-xs capitalize border-white/15"
+                        >
                           {q.difficulty}
                         </Badge>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs bg-primary/10 text-primary border-primary/20"
+                        >
                           {q.category}
                         </Badge>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
@@ -451,7 +495,7 @@ export function RecruiterDashboard() {
         {/* Candidate Responses Tab */}
         <TabsContent value="responses" className="mt-6">
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="recruiter.responses_card"
           >
             <CardHeader>
@@ -481,16 +525,28 @@ export function RecruiterDashboard() {
                   </p>
                 </div>
               ) : (
-                <div className="rounded-lg border border-border/60 overflow-hidden">
+                <div className="rounded-xl border border-white/10 overflow-hidden">
                   <Table data-ocid="recruiter.table">
                     <TableHeader>
-                      <TableRow className="bg-muted/30">
-                        <TableHead className="text-xs">#</TableHead>
-                        <TableHead className="text-xs">Candidate</TableHead>
-                        <TableHead className="text-xs">Date</TableHead>
-                        <TableHead className="text-xs">Score</TableHead>
-                        <TableHead className="text-xs">Status</TableHead>
-                        <TableHead className="text-xs">Flagged</TableHead>
+                      <TableRow className="bg-white/5 border-white/10">
+                        <TableHead className="text-xs text-muted-foreground">
+                          #
+                        </TableHead>
+                        <TableHead className="text-xs text-muted-foreground">
+                          Candidate
+                        </TableHead>
+                        <TableHead className="text-xs text-muted-foreground">
+                          Date
+                        </TableHead>
+                        <TableHead className="text-xs text-muted-foreground">
+                          Score
+                        </TableHead>
+                        <TableHead className="text-xs text-muted-foreground">
+                          Status
+                        </TableHead>
+                        <TableHead className="text-xs text-muted-foreground">
+                          Flagged
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -501,6 +557,7 @@ export function RecruiterDashboard() {
                         return (
                           <TableRow
                             key={String(s.id)}
+                            className="border-white/5 hover:bg-white/5"
                             data-ocid={`recruiter.row.${idx + 1}`}
                           >
                             <TableCell className="text-xs text-muted-foreground">
@@ -523,8 +580,8 @@ export function RecruiterDashboard() {
                                   variant="outline"
                                   className={`text-xs ${
                                     Number(s.overallScore) >= 60
-                                      ? "border-success/40 text-success bg-success/5"
-                                      : "border-destructive/40 text-destructive bg-destructive/5"
+                                      ? "border-success/40 text-success bg-success/10"
+                                      : "border-destructive/40 text-destructive bg-destructive/10"
                                   }`}
                                 >
                                   {String(s.overallScore)}%
@@ -536,14 +593,14 @@ export function RecruiterDashboard() {
                             <TableCell>
                               <Badge
                                 variant="outline"
-                                className="text-xs capitalize"
+                                className="text-xs capitalize border-white/15"
                               >
                                 {s.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
                               {s.flagged ? (
-                                <Badge className="text-xs bg-destructive/10 text-destructive border-destructive/20">
+                                <Badge className="text-xs bg-destructive/15 text-destructive border-destructive/25">
                                   Flagged
                                 </Badge>
                               ) : (
@@ -571,37 +628,45 @@ export function RecruiterDashboard() {
                 {
                   label: "Total Sessions",
                   value: analytics?.total ?? 0,
-                  color: "text-primary",
+                  color: "text-gradient",
+                  glow: "gradient-border-blue",
+                  iconBg: "bg-primary/10 text-primary",
                 },
                 {
                   label: "Avg Score",
                   value: `${analytics?.avgScore ?? 0}%`,
-                  color: "text-chart-2",
+                  color: "text-gradient",
+                  glow: "gradient-border-cyan",
+                  iconBg: "bg-cyan-500/10 text-cyan-400",
                 },
                 {
                   label: "Pass Rate (≥60%)",
                   value: `${analytics?.passRate ?? 0}%`,
-                  color: "text-success",
+                  color: "text-gradient",
+                  glow: "gradient-border-emerald",
+                  iconBg: "bg-success/10 text-success",
                 },
               ].map((stat) => (
                 <Card
                   key={stat.label}
-                  className="border-border/60"
+                  className={`glass-card ${stat.glow} stat-card-glow`}
                   data-ocid="recruiter.card"
                 >
                   <CardContent className="pt-6 pb-5">
                     <p
-                      className={`font-display text-3xl font-bold ${stat.color}`}
+                      className={`font-display text-4xl font-black ${stat.color}`}
                     >
                       {stat.value}
                     </p>
-                    <p className="text-sm font-medium mt-1">{stat.label}</p>
+                    <p className="text-sm font-medium mt-1 text-muted-foreground">
+                      {stat.label}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
-            <Card className="border-border/60">
+            <Card className="glass-card gradient-border-blue">
               <CardHeader>
                 <CardTitle className="text-base">Score Distribution</CardTitle>
                 <CardDescription>
@@ -641,7 +706,7 @@ export function RecruiterDashboard() {
                       label: "61–80% (Good)",
                       min: 61,
                       max: 80,
-                      color: "bg-primary",
+                      color: "bg-gradient-to-r from-blue-600 to-purple-600",
                     },
                     {
                       label: "81–100% (Excellent)",
@@ -659,16 +724,21 @@ export function RecruiterDashboard() {
                     const pct =
                       sessions.length > 0 ? (count / sessions.length) * 100 : 0;
                     return (
-                      <div key={band.label} className="space-y-1">
+                      <div key={band.label} className="space-y-1.5">
                         <div className="flex justify-between text-xs">
                           <span className="text-muted-foreground">
                             {band.label}
                           </span>
-                          <span className="font-medium">
+                          <span className="font-semibold">
                             {count} ({Math.round(pct)}%)
                           </span>
                         </div>
-                        <Progress value={pct} className="h-2" />
+                        <div className="relative h-2 w-full rounded-full overflow-hidden bg-muted/30">
+                          <div
+                            className={`h-full ${band.color} rounded-full transition-all duration-700`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
                       </div>
                     );
                   })
@@ -676,7 +746,7 @@ export function RecruiterDashboard() {
               </CardContent>
             </Card>
 
-            <Separator />
+            <Separator className="bg-white/5" />
             <div className="text-xs text-muted-foreground text-center">
               Analytics based on {sessions?.length ?? 0} total sessions
             </div>

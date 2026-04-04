@@ -262,7 +262,7 @@ export function AIInterviewerSetup() {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         {FEATURES.map((f) => (
-          <Card key={f.title} className="border-border/50">
+          <Card key={f.title} className="glass-card gradient-border-blue">
             <CardContent className="pt-5 pb-4 flex gap-3">
               <div
                 className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${f.bg} ${f.color}`}
@@ -286,7 +286,7 @@ export function AIInterviewerSetup() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <Card className="border-border/50">
+        <Card className="glass-card gradient-border-blue">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-base">
               How the Interview Works

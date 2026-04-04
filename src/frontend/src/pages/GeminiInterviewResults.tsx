@@ -76,7 +76,7 @@ export function GeminiInterviewResults() {
         className="text-center space-y-4"
       >
         <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-glow text-white">
             <Trophy className="h-8 w-8" />
           </div>
         </div>
@@ -103,7 +103,7 @@ export function GeminiInterviewResults() {
 
       {/* Difficulty Progression */}
       {session.length > 0 && (
-        <Card className="border-border/60">
+        <Card className="glass-card gradient-border-blue">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-base">
               Difficulty Progression
@@ -148,7 +148,7 @@ export function GeminiInterviewResults() {
                 // biome-ignore lint/suspicious/noArrayIndexKey: ordered result list
                 key={i}
                 value={`q-${i}`}
-                className="border border-border/60 rounded-lg px-4"
+                className="glass-card gradient-border-blue rounded-xl px-4"
                 data-ocid={`gemini_results.item.${i + 1}`}
               >
                 <AccordionTrigger className="hover:no-underline py-4">
@@ -176,7 +176,7 @@ export function GeminiInterviewResults() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4 space-y-3">
-                  <div className="rounded-lg bg-muted/40 border border-border/40 p-3">
+                  <div className="rounded-xl bg-background/30 border border-white/10 p-3">
                     <p className="text-xs font-semibold text-muted-foreground mb-1">
                       Your Answer
                     </p>
@@ -235,7 +235,7 @@ export function GeminiInterviewResults() {
       >
         <Button
           asChild
-          className="flex-1 gap-2"
+          className="flex-1 gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white btn-glow"
           data-ocid="gemini_results.primary_button"
         >
           <Link to="/gemini-interview">
@@ -246,7 +246,7 @@ export function GeminiInterviewResults() {
         <Button
           asChild
           variant="outline"
-          className="flex-1 gap-2 border-border/60"
+          className="flex-1 gap-2 border-white/20 bg-white/5 hover:bg-white/10"
           data-ocid="gemini_results.secondary_button"
         >
           <Link to="/candidate">

@@ -104,7 +104,7 @@ export function AssessmentReport() {
       </Button>
 
       {/* Header Card */}
-      <Card className="border-border/60">
+      <Card className="glass-card gradient-border-blue">
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -190,7 +190,7 @@ export function AssessmentReport() {
 
       {/* Score Summary */}
       {overallScore !== null && (
-        <Card className="border-border/60">
+        <Card className="glass-card gradient-border-blue">
           <CardHeader className="pb-4">
             <CardTitle className="font-display text-base">
               Score Summary
@@ -231,7 +231,7 @@ export function AssessmentReport() {
       )}
 
       {/* Questions */}
-      <Card className="border-border/60">
+      <Card className="glass-card gradient-border-blue">
         <CardHeader className="pb-4">
           <CardTitle className="font-display text-base">
             Interview Questions ({sessionQuestions.length})

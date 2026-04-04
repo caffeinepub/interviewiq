@@ -1384,7 +1384,7 @@ export function StudentDashboard() {
             className="space-y-6"
           >
             {/* Upload Card */}
-            <Card className="border-border/60">
+            <Card className="glass-card gradient-border-blue">
               <CardHeader>
                 <CardTitle className="font-display text-lg flex items-center gap-2">
                   <Upload size={18} className="text-primary" />
@@ -1702,7 +1702,7 @@ export function StudentDashboard() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: si * 0.1 }}
                       >
-                        <Card className="border-border/60">
+                        <Card className="glass-card gradient-border-blue">
                           <CardHeader className="pb-3">
                             <CardTitle className="font-display text-base flex items-center gap-2">
                               <span className="text-xl">{data.icon}</span>

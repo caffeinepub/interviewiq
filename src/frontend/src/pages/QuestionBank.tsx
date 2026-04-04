@@ -661,7 +661,7 @@ export function QuestionBank() {
       </div>
 
       {/* Filters */}
-      <Card className="border-border/60">
+      <Card className="glass-card gradient-border-blue">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">

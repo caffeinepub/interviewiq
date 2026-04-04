@@ -82,7 +82,7 @@ export function AuthPage() {
         </div>
 
         {showForgot ? (
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
                 <HelpCircle className="h-5 w-5 text-primary" />
@@ -126,7 +126,7 @@ export function AuthPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardContent className="pt-6">
               <Tabs defaultValue="signin">
                 <TabsList className="w-full mb-6" data-ocid="auth.tab">

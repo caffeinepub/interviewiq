@@ -94,7 +94,7 @@ function PortalSwitcher({ isAdmin }: { isAdmin: boolean | undefined }) {
   ];
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 p-1">
+    <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-sm">
       {portals.map((portal) => (
         <Link
           key={portal.label}
@@ -103,8 +103,8 @@ function PortalSwitcher({ isAdmin }: { isAdmin: boolean | undefined }) {
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200",
             portal.active
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm tab-active-glow"
+              : "text-white/60 hover:bg-white/10 hover:text-white/90",
           )}
         >
           {portal.icon}
@@ -127,15 +127,15 @@ export function Navbar() {
     : null;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <header className="relative sticky top-0 z-50 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/40 after:to-transparent">
       <div className="container flex h-16 items-center justify-between gap-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 transition-all group-hover:bg-primary/20 group-hover:ring-primary/40">
-            <BrainCircuit className="h-4.5 w-4.5" size={18} />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 shadow-glow ring-2 ring-primary/20 transition-all group-hover:shadow-glow-lg">
+            <BrainCircuit className="h-4 w-4 text-white" size={18} />
           </div>
-          <span className="font-display text-lg font-bold tracking-tight">
-            Interview<span className="text-primary">IQ</span>
+          <span className="font-display text-xl font-black tracking-tight">
+            Interview<span className="text-gradient">IQ</span>
           </span>
         </Link>
 
@@ -222,7 +222,7 @@ export function Navbar() {
           {isAuthenticated && isAdmin && (
             <Badge
               variant="outline"
-              className="hidden sm:flex border-primary/40 text-primary bg-primary/5 text-xs"
+              className="hidden sm:flex border-primary/40 text-primary bg-primary/10 text-xs backdrop-blur-sm"
             >
               Admin
             </Badge>
@@ -238,7 +238,7 @@ export function Navbar() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 border-border/60 font-mono text-xs"
+                  className="gap-2 border-white/10 bg-white/5 font-mono text-xs hover:bg-white/10 backdrop-blur-sm"
                 >
                   {principalShort}
                   <ChevronDown size={12} />
@@ -246,7 +246,7 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56"
+                className="w-56 glass-card border-white/10"
                 data-ocid="nav.dropdown_menu"
               >
                 <DropdownMenuItem asChild>
@@ -432,7 +432,7 @@ export function Navbar() {
               onClick={login}
               disabled={isLoggingIn}
               size="sm"
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow"
               data-ocid="nav.login_button"
             >
               {isLoggingIn ? (
@@ -469,12 +469,12 @@ function NavLink({
       to={to}
       data-ocid={ocid}
       className={cn(
-        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200",
         active
-          ? "bg-primary/10 text-primary"
+          ? "bg-primary/15 text-primary shadow-sm"
           : secondary
-            ? "text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent/50"
-            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            ? "text-white/40 hover:text-white/60 hover:bg-white/5"
+            : "text-white/60 hover:bg-white/10 hover:text-white/90",
       )}
     >
       {icon}

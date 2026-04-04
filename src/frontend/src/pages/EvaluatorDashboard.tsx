@@ -301,7 +301,7 @@ export function EvaluatorDashboard() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="border-border/60">
+        <Card className="glass-card gradient-border-blue">
           <CardContent className="p-5 flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <ClipboardList size={18} />
@@ -316,7 +316,7 @@ export function EvaluatorDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/60">
+        <Card className="glass-card gradient-border-blue">
           <CardContent className="p-5 flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
               <CheckCircle2 size={18} />
@@ -331,7 +331,7 @@ export function EvaluatorDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/60">
+        <Card className="glass-card gradient-border-blue">
           <CardContent className="p-5 flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10 text-warning">
               <Flag size={18} />
@@ -345,7 +345,7 @@ export function EvaluatorDashboard() {
       </div>
 
       {/* Sessions List */}
-      <Card className="border-border/60">
+      <Card className="glass-card gradient-border-blue">
         <CardHeader className="pb-4">
           <CardTitle className="font-display text-lg">
             Interview Sessions

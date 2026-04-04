@@ -1275,7 +1275,7 @@ export function AdaptiveSession() {
                 variant="outline"
                 size="sm"
                 disabled={submitSession.isPending}
-                className="border-border/60"
+                className="glass-card gradient-border-blue"
                 data-ocid="adaptive-session.finish_button"
               >
                 {submitSession.isPending ? (
@@ -1492,7 +1492,7 @@ export function AdaptiveSession() {
               </Card>
 
               {/* Answer panel */}
-              <Card className="border-border/60">
+              <Card className="glass-card gradient-border-blue">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
@@ -1701,7 +1701,7 @@ export function AdaptiveSession() {
             </>
           ) : (
             // No question yet - this means allQuestions haven't loaded
-            <Card className="border-border/60">
+            <Card className="glass-card gradient-border-blue">
               <CardContent className="pt-8 pb-8 text-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">

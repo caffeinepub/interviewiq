@@ -141,7 +141,7 @@ export function AdmissionsPortal() {
                 onClick={login}
                 disabled={isLoggingIn}
                 size="lg"
-                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow"
                 data-ocid="admissions.login_button"
               >
                 {isLoggingIn ? (
@@ -175,7 +175,7 @@ export function AdmissionsPortal() {
               {!hasProfile ? (
                 <Button
                   size="lg"
-                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow"
                   asChild
                 >
                   <Link
@@ -190,7 +190,7 @@ export function AdmissionsPortal() {
               ) : (
                 <Button
                   size="lg"
-                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow"
                   asChild
                 >
                   <Link
@@ -225,7 +225,7 @@ export function AdmissionsPortal() {
           <section data-ocid="admissions.candidate_status_panel">
             {isLoading ? (
               <Card
-                className="border-border/60"
+                className="glass-card gradient-border-blue"
                 data-ocid="admissions.loading_state"
               >
                 <CardContent className="p-6">
@@ -443,7 +443,7 @@ export function AdmissionsPortal() {
 
         {/* Test Rules & Guidelines */}
         <section data-ocid="admissions.rules_section">
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" />

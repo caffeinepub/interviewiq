@@ -394,7 +394,7 @@ export function AssessmentResults() {
 
       {/* Score Bar Card */}
       {overallScore !== null && (
-        <Card className="border-border/60">
+        <Card className="glass-card gradient-border-blue">
           <CardHeader className="pb-3">
             <CardTitle className="font-display text-base">
               Score Summary
@@ -477,7 +477,7 @@ export function AssessmentResults() {
       {/* Proctoring Report */}
       {proctoring && (
         <Card
-          className="border-border/60"
+          className="glass-card gradient-border-blue"
           data-ocid="assessment-results.proctoring_card"
         >
           <CardHeader className="pb-3">
@@ -621,7 +621,7 @@ export function AssessmentResults() {
       )}
 
       {/* Per-Question Breakdown */}
-      <Card className="border-border/60">
+      <Card className="glass-card gradient-border-blue">
         <CardHeader className="pb-4">
           <CardTitle className="font-display text-base flex items-center gap-2">
             <BrainCircuit size={16} className="text-primary" />
@@ -789,7 +789,7 @@ export function AssessmentResults() {
 
         return (
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="assessment-results.recommendations_section"
           >
             <CardHeader className="pb-3">

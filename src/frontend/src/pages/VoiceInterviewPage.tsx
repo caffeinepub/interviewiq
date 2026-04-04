@@ -16,6 +16,7 @@ import {
   Camera,
   Eye,
   EyeOff,
+  Lock,
   Mic,
   MicOff,
   Volume2,
@@ -34,6 +35,7 @@ const features = [
       "Each interview question is spoken aloud using text-to-speech, making it feel like a real conversation.",
     color: "text-primary",
     bg: "bg-primary/10",
+    glow: "gradient-border-blue",
   },
   {
     icon: Mic,
@@ -42,6 +44,7 @@ const features = [
       "Your spoken answers are transcribed in real-time. Just talk naturally — no typing required.",
     color: "text-cyan-400",
     bg: "bg-cyan-500/10",
+    glow: "gradient-border-cyan",
   },
   {
     icon: Camera,
@@ -50,6 +53,7 @@ const features = [
       "Optional webcam monitoring keeps the session professional and secure throughout.",
     color: "text-violet-400",
     bg: "bg-violet-500/10",
+    glow: "gradient-border-violet",
   },
   {
     icon: Bot,
@@ -58,6 +62,7 @@ const features = [
       "Each answer is evaluated by Gemini AI for clarity, depth, and relevance — with instant feedback.",
     color: "text-success",
     bg: "bg-success/10",
+    glow: "gradient-border-emerald",
   },
 ];
 
@@ -88,26 +93,34 @@ export function VoiceInterviewPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Hero */}
-      <section className="border-b border-border/60 bg-gradient-to-b from-primary/5 to-background py-16">
-        <div className="container max-w-3xl text-center">
+      <section className="relative overflow-hidden gradient-hero border-b border-white/5 py-20">
+        <div className="orb orb-blue w-80 h-80 -top-20 -left-20" />
+        <div
+          className="orb orb-cyan w-64 h-64 top-10 right-0"
+          style={{ animationDelay: "3s" }}
+        />
+        <div className="container max-w-3xl text-center relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-2 ring-primary/20">
-              <Mic className="h-8 w-8 text-primary" />
+            <div className="mx-auto mb-6 relative w-fit">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-glow-lg mx-auto">
+                <Mic className="h-10 w-10 text-white" />
+              </div>
+              <div className="absolute -inset-3 rounded-2xl bg-primary/10 animate-pulse" />
             </div>
             <Badge
               variant="outline"
-              className="mb-4 border-primary/40 bg-primary/5 text-primary px-3 py-1 text-xs"
+              className="mb-4 border-primary/40 bg-primary/10 text-primary px-4 py-1.5 text-sm backdrop-blur-sm"
             >
               Gemini Powered · Speech Recognition
             </Badge>
-            <h1 className="font-display text-4xl font-bold tracking-tight mb-3 md:text-5xl">
-              Voice <span className="text-primary">Interview</span>
+            <h1 className="font-display text-5xl font-black tracking-tighter mb-4 md:text-6xl">
+              Voice <span className="text-gradient">Interview</span>
             </h1>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
               Experience a fully conversational AI interview. The AI speaks
               questions aloud, you answer by voice, and Gemini evaluates your
               responses in real-time.
@@ -116,7 +129,7 @@ export function VoiceInterviewPage() {
         </div>
       </section>
 
-      <div className="container max-w-4xl py-12 space-y-10">
+      <div className="container max-w-4xl py-14 space-y-12">
         {/* Feature Cards */}
         <section>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -127,15 +140,18 @@ export function VoiceInterviewPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
+                whileHover={{ y: -3 }}
               >
-                <Card className="h-full border-border/60 hover:border-primary/30 transition-colors">
+                <Card
+                  className={`h-full glass-card ${feat.glow} hover:shadow-glow transition-all duration-300`}
+                >
                   <CardContent className="p-5">
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${feat.bg} ${feat.color} mb-4`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${feat.bg} ${feat.color} mb-4 ring-1 ring-current/20`}
                     >
                       <feat.icon size={20} />
                     </div>
-                    <h3 className="font-display font-semibold text-sm mb-1.5">
+                    <h3 className="font-display font-bold text-sm mb-1.5">
                       {feat.title}
                     </h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">
@@ -155,10 +171,11 @@ export function VoiceInterviewPage() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <Card
-            className="border-border/60 max-w-lg mx-auto"
+            className="glass-card gradient-border-blue max-w-lg mx-auto relative overflow-hidden"
             data-ocid="voice.setup_card"
           >
-            <CardHeader>
+            <div className="orb orb-blue w-32 h-32 -top-8 -right-8" />
+            <CardHeader className="relative">
               <CardTitle className="font-display text-xl">
                 Set Up Your Voice Interview
               </CardTitle>
@@ -167,10 +184,14 @@ export function VoiceInterviewPage() {
                 required for AI question generation and evaluation.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-5 relative">
               {/* API Key */}
               <div className="space-y-2">
-                <Label htmlFor="voice-api-key">
+                <Label
+                  htmlFor="voice-api-key"
+                  className="flex items-center gap-1.5"
+                >
+                  <Lock size={13} className="text-primary" />
                   Gemini API Key <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
@@ -180,7 +201,7 @@ export function VoiceInterviewPage() {
                     placeholder="AIza..."
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    className="pr-10 font-mono text-sm border-border/60"
+                    className="pr-10 font-mono text-sm bg-background/40 border-white/10 focus:border-primary/50 focus:shadow-glow"
                     data-ocid="voice.api_key_input"
                   />
                   <button
@@ -214,7 +235,7 @@ export function VoiceInterviewPage() {
                   placeholder="e.g. Frontend Developer, Data Scientist..."
                   value={jobRole}
                   onChange={(e) => setJobRole(e.target.value)}
-                  className="border-border/60"
+                  className="bg-background/40 border-white/10 focus:border-primary/50 focus:shadow-glow"
                   data-ocid="voice.job_role_input"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -223,8 +244,10 @@ export function VoiceInterviewPage() {
               </div>
 
               {/* Tips */}
-              <div className="rounded-lg bg-muted/40 border border-border/60 p-4 space-y-2">
-                <p className="text-xs font-semibold">Before you start:</p>
+              <div className="rounded-xl bg-background/30 border border-white/10 p-4 space-y-2 backdrop-blur-sm">
+                <p className="text-xs font-semibold text-foreground/80">
+                  Before you start:
+                </p>
                 <ul className="space-y-1.5">
                   {[
                     {
@@ -248,7 +271,9 @@ export function VoiceInterviewPage() {
                       key={tip.text}
                       className="flex items-center gap-2 text-xs text-muted-foreground"
                     >
-                      <tip.icon className="h-3.5 w-3.5 text-primary shrink-0" />
+                      <div className="h-5 w-5 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                        <tip.icon className="h-3 w-3 text-primary" />
+                      </div>
                       {tip.text}
                     </li>
                   ))}
@@ -260,7 +285,7 @@ export function VoiceInterviewPage() {
                 <Button
                   onClick={login}
                   disabled={isLoggingIn}
-                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11"
+                  className="w-full gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow h-11 font-semibold"
                   data-ocid="voice.login_button"
                 >
                   Sign In to Start
@@ -269,7 +294,7 @@ export function VoiceInterviewPage() {
                 <Button
                   onClick={handleStart}
                   disabled={!apiKey.trim() || !jobRole.trim()}
-                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 font-semibold"
+                  className="w-full gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow h-11 font-semibold"
                   data-ocid="voice.start_button"
                 >
                   <Zap size={16} />
@@ -282,7 +307,7 @@ export function VoiceInterviewPage() {
 
         {/* Other Interview Modes */}
         <section>
-          <h2 className="font-display text-xl font-bold mb-4">
+          <h2 className="font-display text-xl font-bold mb-5">
             Other Interview Modes
           </h2>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -294,6 +319,7 @@ export function VoiceInterviewPage() {
                 icon: Bot,
                 color: "text-cyan-400",
                 bg: "bg-cyan-500/10",
+                glow: "gradient-border-cyan",
               },
               {
                 label: "Gemini Interview",
@@ -302,6 +328,7 @@ export function VoiceInterviewPage() {
                 icon: Zap,
                 color: "text-primary",
                 bg: "bg-primary/10",
+                glow: "gradient-border-blue",
               },
               {
                 label: "Panel Interview",
@@ -310,25 +337,30 @@ export function VoiceInterviewPage() {
                 icon: ArrowRight,
                 color: "text-violet-400",
                 bg: "bg-violet-500/10",
+                glow: "gradient-border-violet",
               },
             ].map((mode) => (
-              <Link key={mode.label} to={mode.to}>
-                <Card className="border-border/60 hover:border-primary/30 transition-colors cursor-pointer h-full">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${mode.bg} ${mode.color}`}
-                    >
-                      <mode.icon size={16} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{mode.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {mode.desc}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <motion.div key={mode.label} whileHover={{ y: -2 }}>
+                <Link to={mode.to}>
+                  <Card
+                    className={`glass-card ${mode.glow} hover:shadow-glow transition-all duration-300 cursor-pointer h-full`}
+                  >
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${mode.bg} ${mode.color} ring-1 ring-current/20`}
+                      >
+                        <mode.icon size={16} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{mode.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {mode.desc}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </section>

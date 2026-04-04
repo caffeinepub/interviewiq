@@ -1303,7 +1303,7 @@ export function InterviewSession() {
                 variant="outline"
                 size="sm"
                 disabled={submitSession.isPending}
-                className="border-border/60"
+                className="glass-card gradient-border-blue"
                 data-ocid="session.submit_session_button"
               >
                 {submitSession.isPending ? (
@@ -1434,7 +1434,7 @@ export function InterviewSession() {
         {/* Current Question Panel */}
         {currentQ ? (
           <div className="space-y-4">
-            <Card className="border-border/60">
+            <Card className="glass-card gradient-border-blue">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
@@ -1513,7 +1513,7 @@ export function InterviewSession() {
             </Card>
 
             {/* Answer Panel */}
-            <Card className="border-border/60">
+            <Card className="glass-card gradient-border-blue">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
@@ -1776,7 +1776,7 @@ export function InterviewSession() {
                 size="sm"
                 onClick={() => setCurrentQuestionIdx((p) => Math.max(0, p - 1))}
                 disabled={currentQuestionIdx === 0}
-                className="border-border/60"
+                className="glass-card gradient-border-blue"
               >
                 <ArrowLeft size={13} className="mr-1" />
                 Previous
@@ -1795,7 +1795,7 @@ export function InterviewSession() {
                   )
                 }
                 disabled={currentQuestionIdx === sessionQuestions.length - 1}
-                className="border-border/60"
+                className="glass-card gradient-border-blue"
               >
                 Next
                 <ChevronRight size={13} className="ml-1" />

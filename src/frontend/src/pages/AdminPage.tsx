@@ -181,7 +181,10 @@ export function AdminPage() {
 
         {/* Loading */}
         {isLoading && (
-          <Card className="border-border/60" data-ocid="admin.loading_state">
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.loading_state"
+          >
             <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <p className="text-xs text-muted-foreground">
@@ -363,7 +366,10 @@ export function AdminPage() {
 
         {/* Redirecting state */}
         {!isLoading && isAuthenticated && isAdmin === true && (
-          <Card className="border-border/60" data-ocid="admin.success_state">
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.success_state"
+          >
             <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
               <CheckCircle2 className="h-8 w-8 text-success" />
               <p className="text-sm font-medium">

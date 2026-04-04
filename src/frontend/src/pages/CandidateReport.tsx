@@ -428,7 +428,7 @@ export function CandidateReport() {
           data-ocid="candidate-report.score_summary_section"
         >
           {/* Card 1: Score Gauge */}
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-sm text-muted-foreground">
                 Overall Score
@@ -469,7 +469,7 @@ export function CandidateReport() {
 
           {/* Card 3: Completion stats */}
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="candidate-report.stats_card"
           >
             <CardHeader className="pb-2">
@@ -527,7 +527,7 @@ export function CandidateReport() {
         }
         return (
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="candidate-report.skill_assessment_card"
           >
             <CardHeader className="pb-3">
@@ -606,7 +606,7 @@ export function CandidateReport() {
       {/* Camera Integrity Section */}
       {proctoring && (
         <Card
-          className="border-border/60"
+          className="glass-card gradient-border-blue"
           data-ocid="candidate-report.integrity_card"
         >
           <CardHeader className="pb-3">
@@ -727,7 +727,7 @@ export function CandidateReport() {
       {/* Score Breakdown Table */}
       {sessionQuestions.length > 0 && (
         <Card
-          className="border-border/60"
+          className="glass-card gradient-border-blue"
           data-ocid="candidate-report.score_table"
         >
           <CardHeader className="pb-3">
@@ -834,7 +834,7 @@ export function CandidateReport() {
       {/* Answer Quality Chart */}
       {chartData.length > 0 && (
         <Card
-          className="border-border/60"
+          className="glass-card gradient-border-blue"
           data-ocid="candidate-report.chart_card"
         >
           <CardHeader className="pb-3">
@@ -894,7 +894,7 @@ export function CandidateReport() {
 
       {/* Full Answer Breakdown */}
       <Card
-        className="border-border/60"
+        className="glass-card gradient-border-blue"
         data-ocid="candidate-report.answer_breakdown_card"
       >
         <CardHeader className="pb-4">
@@ -1048,7 +1048,7 @@ export function CandidateReport() {
       {/* Proctoring Event Timeline */}
       {proctoring && proctoring.events.length > 0 && (
         <Card
-          className="border-border/60"
+          className="glass-card gradient-border-blue"
           data-ocid="candidate-report.proctoring_timeline_card"
         >
           <CardHeader className="pb-3">

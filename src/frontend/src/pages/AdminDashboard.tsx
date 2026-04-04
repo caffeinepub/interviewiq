@@ -58,6 +58,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UserRole } from "../backend";
@@ -291,33 +292,41 @@ export function AdminDashboard() {
   return (
     <div className="container py-10 space-y-8 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-            <Shield className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-2xl font-bold tracking-tight">
-                Admin Dashboard
-              </h1>
-              <Badge
-                className="bg-primary/10 text-primary border-primary/30 text-xs"
-                variant="outline"
-                data-ocid="admin.role_badge"
-              >
-                Admin
-              </Badge>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-2xl glass-card gradient-border-blue p-7"
+      >
+        <div className="orb orb-blue w-48 h-48 -top-12 -right-12" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-glow text-white shrink-0">
+              <Shield className="h-6 w-6" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Full platform control and analytics
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-2xl font-black tracking-tight">
+                  Admin Dashboard
+                </h1>
+                <Badge
+                  className="bg-primary/10 text-primary border-primary/30 text-xs backdrop-blur-sm"
+                  variant="outline"
+                  data-ocid="admin.role_badge"
+                >
+                  Admin
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Executive control tower
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Admin Principal */}
-      <Card className="border-border/60 bg-primary/5" data-ocid="admin.panel">
+      <Card className="glass-card gradient-border-blue" data-ocid="admin.panel">
         <CardContent className="py-4 px-5">
           <div className="flex items-center gap-3 flex-wrap">
             <Shield className="h-4 w-4 text-primary shrink-0" />
@@ -341,7 +350,7 @@ export function AdminDashboard() {
 
       <Tabs defaultValue="analytics">
         <TabsList
-          className="w-full flex-wrap h-auto gap-1"
+          className="w-full flex-wrap h-auto gap-1 glass-card border-white/10"
           data-ocid="admin.tab"
         >
           <TabsTrigger value="analytics" data-ocid="admin.analytics_tab">
@@ -422,7 +431,7 @@ export function AdminDashboard() {
             ].map((s) => (
               <Card
                 key={s.label}
-                className="border-border/60"
+                className="glass-card gradient-border-blue"
                 data-ocid="admin.card"
               >
                 <CardContent className="pt-5 pb-4">
@@ -445,7 +454,10 @@ export function AdminDashboard() {
           </div>
 
           {/* AI Difficulty Control */}
-          <Card className="border-border/60" data-ocid="admin.difficulty_card">
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.difficulty_card"
+          >
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
@@ -497,7 +509,7 @@ export function AdminDashboard() {
           </Card>
 
           {/* Recent Sessions */}
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Recent Sessions</CardTitle>
@@ -583,7 +595,10 @@ export function AdminDashboard() {
 
         {/* ─── USER MANAGEMENT ─── */}
         <TabsContent value="users" className="mt-6 space-y-6">
-          <Card className="border-border/60" data-ocid="admin.users_card">
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.users_card"
+          >
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -898,7 +913,7 @@ export function AdminDashboard() {
           </div>
 
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="admin.cheating_logs_card"
           >
             <CardHeader>
@@ -1035,7 +1050,10 @@ export function AdminDashboard() {
         {/* ─── QUESTION BANK ─── */}
         <TabsContent value="questions" className="mt-6 space-y-6">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="border-border/60" data-ocid="admin.card">
+            <Card
+              className="glass-card gradient-border-blue"
+              data-ocid="admin.card"
+            >
               <CardContent className="pt-6 pb-5">
                 <div className="flex items-center justify-between mb-2">
                   <Database className="h-5 w-5 text-muted-foreground" />
@@ -1062,7 +1080,7 @@ export function AdminDashboard() {
             </Card>
           </div>
 
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary" />
@@ -1109,7 +1127,10 @@ export function AdminDashboard() {
 
         {/* ─── CANDIDATE PROFILES ─── */}
         <TabsContent value="profiles" className="mt-6">
-          <Card className="border-border/60" data-ocid="admin.profiles_section">
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.profiles_section"
+          >
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1263,7 +1284,7 @@ export function AdminDashboard() {
         {/* ─── ROLE REQUESTS ─── */}
         <TabsContent value="role-requests" className="mt-6 space-y-6">
           <Card
-            className="border-border/60"
+            className="glass-card gradient-border-blue"
             data-ocid="admin.role_requests_card"
           >
             <CardHeader>

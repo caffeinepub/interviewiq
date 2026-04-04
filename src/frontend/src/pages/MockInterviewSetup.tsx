@@ -104,7 +104,7 @@ export function MockInterviewSetup() {
         {/* Question Selection */}
         <div className="lg:col-span-2 space-y-4">
           {/* Filters */}
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
@@ -156,7 +156,7 @@ export function MockInterviewSetup() {
           </Card>
 
           {/* Questions List */}
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader className="pb-3">
               <CardTitle className="font-display text-base">
                 Question Bank
@@ -243,7 +243,7 @@ export function MockInterviewSetup() {
 
         {/* Config Panel */}
         <div className="space-y-4">
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader className="pb-4">
               <CardTitle className="font-display text-base">
                 Interview Settings

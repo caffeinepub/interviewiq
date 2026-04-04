@@ -151,7 +151,7 @@ export function GeminiInterviewSession() {
               AI is generating your questions…
             </p>
           </div>
-          <Card className="border-border/60">
+          <Card className="glass-card gradient-border-blue">
             <CardContent className="pt-6 space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="space-y-2">
@@ -167,224 +167,230 @@ export function GeminiInterviewSession() {
   }
 
   return (
-    <div className="container max-w-2xl py-8 space-y-6">
-      {/* Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            Question {currentIdx + 1} of {questions.length}
-          </span>
-          <Badge
-            variant="outline"
-            className={`capitalize ${DIFFICULTY_STYLES[currentDifficulty] ?? ""}`}
-          >
-            {currentDifficulty}
-          </Badge>
-        </div>
-        <Progress
-          value={progress}
-          className="h-2"
-          data-ocid="gemini_session.loading_state"
-        />
-      </div>
-
-      {/* Interviewer Avatar */}
-      <div className="flex items-center gap-3">
-        <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.5 }}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary ring-2 ring-primary/20"
-        >
-          <Sparkles className="h-5 w-5" />
-        </motion.div>
-        <div>
-          <p className="text-sm font-semibold">Gemini AI Interviewer</p>
-          <p className="text-xs text-muted-foreground capitalize">
-            {config?.role} · {currentDifficulty} difficulty
-          </p>
-        </div>
-      </div>
-
-      {/* Question Card */}
-      <AnimatePresence mode="wait">
-        {currentQ && (
-          <motion.div
-            key={currentIdx}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="border-border/60 border-glow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge
-                    variant="outline"
-                    className="text-xs capitalize border-primary/30 text-primary bg-primary/5"
-                  >
-                    {currentQ.type}
-                  </Badge>
-                </div>
-                <CardTitle className="font-display text-lg leading-relaxed">
-                  {currentQ.question}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="relative">
-                  <Textarea
-                    ref={answerRef}
-                    placeholder="Type your answer here… Be specific and use examples."
-                    rows={5}
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    disabled={phase !== "questioning"}
-                    className="resize-none"
-                    data-ocid="gemini_session.textarea"
-                  />
-                  {phase === "evaluating" && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-md">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span className="text-sm font-medium">
-                          AI is evaluating your answer…
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {phase === "questioning" && (
-                  <Button
-                    className="w-full gap-2"
-                    disabled={answer.length < 10}
-                    onClick={handleSubmitAnswer}
-                    data-ocid="gemini_session.submit_button"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Submit Answer
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Evaluation Card */}
-      <AnimatePresence>
-        {evaluation && phase === "followup" && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Card
-              className="border-border/60"
-              data-ocid="gemini_session.success_state"
+    <div className="console-bg min-h-screen">
+      <div className="container max-w-2xl py-8 space-y-6">
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Question {currentIdx + 1} of {questions.length}
+            </span>
+            <Badge
+              variant="outline"
+              className={`capitalize ${DIFFICULTY_STYLES[currentDifficulty] ?? ""}`}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-display text-base">
-                    AI Evaluation
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Score</span>
-                    <span
-                      className={`font-display text-2xl font-bold ${
-                        evaluation.score >= 7
-                          ? "text-green-400"
-                          : evaluation.score >= 5
-                            ? "text-yellow-400"
-                            : "text-red-400"
-                      }`}
+              {currentDifficulty}
+            </Badge>
+          </div>
+          <Progress
+            value={progress}
+            className="h-2 bg-gradient-to-r from-blue-600 to-purple-600"
+            data-ocid="gemini_session.loading_state"
+          />
+        </div>
+
+        {/* Interviewer Avatar */}
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.5 }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary ring-2 ring-primary/20"
+          >
+            <Sparkles className="h-5 w-5" />
+          </motion.div>
+          <div>
+            <p className="text-sm font-semibold">Gemini AI Interviewer</p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {config?.role} · {currentDifficulty} difficulty
+            </p>
+          </div>
+        </div>
+
+        {/* Question Card */}
+        <AnimatePresence mode="wait">
+          {currentQ && (
+            <motion.div
+              key={currentIdx}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-border/60 border-glow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge
+                      variant="outline"
+                      className="text-xs capitalize border-primary/30 text-primary bg-primary/5"
                     >
-                      {evaluation.score}/10
-                    </span>
+                      {currentQ.type}
+                    </Badge>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-start gap-2 rounded-lg bg-green-500/10 border border-green-500/20 p-3">
-                  <ThumbsUp className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-semibold text-green-400 mb-0.5">
-                      Strengths
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {evaluation.strengths}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-3">
-                  <ThumbsDown className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-semibold text-red-400 mb-0.5">
-                      Areas to Improve
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {evaluation.weaknesses}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
-                  <Lightbulb className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-semibold text-blue-400 mb-0.5">
-                      Tip
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {evaluation.improvement_tip}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {followUp && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="mt-4"
-              >
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary mt-0.5">
-                        <Brain className="h-4 w-4" />
+                  <CardTitle className="font-display text-lg leading-relaxed">
+                    {currentQ.question}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="relative">
+                    <Textarea
+                      ref={answerRef}
+                      placeholder="Type your answer here… Be specific and use examples."
+                      rows={5}
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={phase !== "questioning"}
+                      className="resize-none"
+                      data-ocid="gemini_session.textarea"
+                    />
+                    {phase === "evaluating" && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-md">
+                        <div className="flex items-center gap-2 text-primary">
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span className="text-sm font-medium">
+                            AI is evaluating your answer…
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-semibold text-primary mb-1">
-                          Follow-up Question
-                        </p>
-                        <p className="text-sm">{followUp.follow_up_question}</p>
-                        <Badge
-                          variant="outline"
-                          className={`mt-2 text-xs capitalize ${DIFFICULTY_STYLES[followUp.difficulty] ?? ""}`}
-                        >
-                          {followUp.difficulty} difficulty
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                    )}
+                  </div>
 
-            <Button
-              className="w-full mt-4 gap-2"
-              onClick={handleNextQuestion}
-              data-ocid="gemini_session.primary_button"
+                  {phase === "questioning" && (
+                    <Button
+                      className="w-full gap-2"
+                      disabled={answer.length < 10}
+                      onClick={handleSubmitAnswer}
+                      data-ocid="gemini_session.submit_button"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Submit Answer
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Evaluation Card */}
+        <AnimatePresence>
+          {evaluation && phase === "followup" && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
             >
-              {currentIdx + 1 >= questions.length
-                ? "Finish Interview"
-                : "Next Question"}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <Card
+                className="glass-card gradient-border-blue"
+                data-ocid="gemini_session.success_state"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="font-display text-base">
+                      AI Evaluation
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        Score
+                      </span>
+                      <span
+                        className={`font-display text-2xl font-bold ${
+                          evaluation.score >= 7
+                            ? "text-green-400"
+                            : evaluation.score >= 5
+                              ? "text-yellow-400"
+                              : "text-red-400"
+                        }`}
+                      >
+                        {evaluation.score}/10
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-2 rounded-lg bg-green-500/10 border border-green-500/20 p-3">
+                    <ThumbsUp className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-green-400 mb-0.5">
+                        Strengths
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {evaluation.strengths}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-3">
+                    <ThumbsDown className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-red-400 mb-0.5">
+                        Areas to Improve
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {evaluation.weaknesses}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
+                    <Lightbulb className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-blue-400 mb-0.5">
+                        Tip
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {evaluation.improvement_tip}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {followUp && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-4"
+                >
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="pt-4 pb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary mt-0.5">
+                          <Brain className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-primary mb-1">
+                            Follow-up Question
+                          </p>
+                          <p className="text-sm">
+                            {followUp.follow_up_question}
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className={`mt-2 text-xs capitalize ${DIFFICULTY_STYLES[followUp.difficulty] ?? ""}`}
+                          >
+                            {followUp.difficulty} difficulty
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              <Button
+                className="w-full mt-4 gap-2"
+                onClick={handleNextQuestion}
+                data-ocid="gemini_session.primary_button"
+              >
+                {currentIdx + 1 >= questions.length
+                  ? "Finish Interview"
+                  : "Next Question"}
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Lock,
   Mic,
   User,
   Users,
@@ -33,7 +34,7 @@ const interviewers = [
     icon: User,
     color: "text-primary",
     bg: "bg-primary/10",
-    border: "border-primary/20",
+    glow: "gradient-border-blue",
     tone: "Friendly & Conversational",
     focus: "Communication skills, cultural fit, behavioral competencies",
     sampleQuestions: [
@@ -47,7 +48,7 @@ const interviewers = [
     icon: BrainCircuit,
     color: "text-cyan-400",
     bg: "bg-cyan-500/10",
-    border: "border-cyan-500/20",
+    glow: "gradient-border-cyan",
     tone: "Precise & Analytical",
     focus: "Technical skills, problem-solving, project architecture",
     sampleQuestions: [
@@ -61,7 +62,7 @@ const interviewers = [
     icon: Briefcase,
     color: "text-violet-400",
     bg: "bg-violet-500/10",
-    border: "border-violet-500/20",
+    glow: "gradient-border-violet",
     tone: "Direct & Strategic",
     focus: "Leadership potential, decision-making, business impact",
     sampleQuestions: [
@@ -110,26 +111,34 @@ export function PanelInterviewPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Hero */}
-      <section className="border-b border-border/60 bg-gradient-to-b from-primary/5 to-background py-16">
-        <div className="container max-w-3xl text-center">
+      <section className="relative overflow-hidden gradient-hero border-b border-white/5 py-20">
+        <div className="orb orb-violet w-80 h-80 -top-20 -right-20" />
+        <div
+          className="orb orb-blue w-64 h-64 bottom-0 left-0"
+          style={{ animationDelay: "2s" }}
+        />
+        <div className="container max-w-3xl text-center relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-2 ring-primary/20">
-              <Users className="h-8 w-8 text-primary" />
+            <div className="mx-auto mb-6 relative w-fit">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 shadow-glow-violet mx-auto">
+                <Users className="h-10 w-10 text-white" />
+              </div>
+              <div className="absolute -inset-3 rounded-2xl bg-violet-500/10 animate-pulse" />
             </div>
             <Badge
               variant="outline"
-              className="mb-4 border-primary/40 bg-primary/5 text-primary px-3 py-1 text-xs"
+              className="mb-4 border-violet-500/40 bg-violet-500/10 text-violet-400 px-4 py-1.5 text-sm backdrop-blur-sm"
             >
               HR · Technical · Manager
             </Badge>
-            <h1 className="font-display text-4xl font-bold tracking-tight mb-3 md:text-5xl">
-              Panel <span className="text-primary">Interview</span>
+            <h1 className="font-display text-5xl font-black tracking-tighter mb-4 md:text-6xl">
+              Panel <span className="text-gradient">Interview</span>
             </h1>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="text-white/70 text-lg max-w-xl mx-auto leading-relaxed">
               Experience a realistic multi-interviewer panel. Three AI
               interviewers take turns asking questions based on your resume and
               target role.
@@ -138,14 +147,14 @@ export function PanelInterviewPage() {
         </div>
       </section>
 
-      <div className="container max-w-5xl py-12 space-y-12">
+      <div className="container max-w-5xl py-14 space-y-14">
         {/* Panel Features */}
         <section>
           <div className="flex flex-wrap gap-3">
             {panelFeatures.map((f) => (
               <div
                 key={f.text}
-                className="flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-4 py-2 text-sm"
+                className="flex items-center gap-2 rounded-full glass-card gradient-border-blue px-4 py-2 text-sm"
               >
                 <f.icon size={14} className="text-primary" />
                 <span>{f.text}</span>
@@ -156,7 +165,7 @@ export function PanelInterviewPage() {
 
         {/* Meet the Interviewers */}
         <section>
-          <h2 className="font-display text-2xl font-bold mb-2">
+          <h2 className="font-display text-2xl font-black mb-2">
             Meet Your Panel
           </h2>
           <p className="text-muted-foreground text-sm mb-6">
@@ -171,13 +180,14 @@ export function PanelInterviewPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -4 }}
               >
                 <Card
-                  className={`h-full border ${iv.border} hover:shadow-md transition-all`}
+                  className={`h-full glass-card ${iv.glow} hover:shadow-glow transition-all duration-300`}
                 >
                   <CardContent className="p-5">
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${iv.bg} ${iv.color} mb-4`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${iv.bg} ${iv.color} mb-4 ring-1 ring-current/20`}
                     >
                       <iv.icon size={20} />
                     </div>
@@ -187,7 +197,7 @@ export function PanelInterviewPage() {
                       </p>
                       <Badge
                         variant="outline"
-                        className={`mt-1 text-xs ${iv.color} border-current/20 bg-current/5`}
+                        className={`mt-1.5 text-xs ${iv.color} border-current/30 bg-current/10`}
                       >
                         {iv.tone}
                       </Badge>
@@ -223,10 +233,11 @@ export function PanelInterviewPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Card
-            className="border-border/60 max-w-lg mx-auto"
+            className="glass-card gradient-border-violet max-w-lg mx-auto relative overflow-hidden"
             data-ocid="panel.setup_card"
           >
-            <CardHeader>
+            <div className="orb orb-violet w-32 h-32 -top-8 -right-8" />
+            <CardHeader className="relative">
               <CardTitle className="font-display text-xl">
                 Start Panel Interview
               </CardTitle>
@@ -235,10 +246,14 @@ export function PanelInterviewPage() {
                 session powered by Google Gemini.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-5 relative">
               {/* API Key */}
               <div className="space-y-2">
-                <Label htmlFor="panel-api-key">
+                <Label
+                  htmlFor="panel-api-key"
+                  className="flex items-center gap-1.5"
+                >
+                  <Lock size={13} className="text-primary" />
                   Gemini API Key <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
@@ -248,7 +263,7 @@ export function PanelInterviewPage() {
                     placeholder="AIza..."
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    className="pr-10 font-mono text-sm border-border/60"
+                    className="pr-10 font-mono text-sm bg-background/40 border-white/10 focus:border-primary/50 focus:shadow-glow"
                     data-ocid="panel.api_key_input"
                   />
                   <button
@@ -282,23 +297,27 @@ export function PanelInterviewPage() {
                   placeholder="e.g. Software Engineer, Product Manager..."
                   value={jobRole}
                   onChange={(e) => setJobRole(e.target.value)}
-                  className="border-border/60"
+                  className="bg-background/40 border-white/10 focus:border-primary/50 focus:shadow-glow"
                   data-ocid="panel.job_role_input"
                 />
               </div>
 
               {/* Interview Flow Preview */}
-              <div className="rounded-lg bg-muted/40 border border-border/60 p-4">
-                <p className="text-xs font-semibold mb-2">Interview Flow:</p>
+              <div className="rounded-xl bg-background/30 border border-white/10 p-4 backdrop-blur-sm">
+                <p className="text-xs font-semibold mb-3 text-foreground/80">
+                  Interview Flow:
+                </p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                   {interviewers.map((iv, i) => (
                     <div key={iv.role} className="flex items-center gap-2">
                       <div
-                        className={`flex h-6 w-6 items-center justify-center rounded-full ${iv.bg} ${iv.color}`}
+                        className={`flex h-7 w-7 items-center justify-center rounded-full ${iv.bg} ${iv.color} ring-1 ring-current/20`}
                       >
-                        <iv.icon size={12} />
+                        <iv.icon size={13} />
                       </div>
-                      <span>{iv.role.split(" ")[0]}</span>
+                      <span className="font-medium">
+                        {iv.role.split(" ")[0]}
+                      </span>
                       {i < interviewers.length - 1 && (
                         <ArrowRight
                           size={12}
@@ -316,7 +335,7 @@ export function PanelInterviewPage() {
                 <Button
                   onClick={login}
                   disabled={isLoggingIn}
-                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11"
+                  className="w-full gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 btn-glow h-11 font-semibold"
                   data-ocid="panel.login_button"
                 >
                   Sign In to Start
@@ -325,7 +344,7 @@ export function PanelInterviewPage() {
                 <Button
                   onClick={handleStart}
                   disabled={!apiKey.trim() || !jobRole.trim()}
-                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 font-semibold"
+                  className="w-full gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 btn-glow h-11 font-semibold"
                   data-ocid="panel.start_button"
                 >
                   <Users size={16} />
@@ -338,7 +357,7 @@ export function PanelInterviewPage() {
 
         {/* Other Modes */}
         <section>
-          <h2 className="font-display text-xl font-bold mb-4">
+          <h2 className="font-display text-xl font-bold mb-5">
             Other Interview Modes
           </h2>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -348,35 +367,50 @@ export function PanelInterviewPage() {
                 desc: "Talk with AI via microphone",
                 to: "/voice-interview",
                 icon: Mic,
+                color: "text-primary",
+                bg: "bg-primary/10",
+                glow: "gradient-border-blue",
               },
               {
                 label: "AI Interviewer",
                 desc: "Strict one-question-at-a-time",
                 to: "/ai-interviewer",
                 icon: BrainCircuit,
+                color: "text-cyan-400",
+                bg: "bg-cyan-500/10",
+                glow: "gradient-border-cyan",
               },
               {
                 label: "Gemini Interview",
                 desc: "Fully adaptive AI questions",
                 to: "/gemini-interview",
                 icon: Zap,
+                color: "text-violet-400",
+                bg: "bg-violet-500/10",
+                glow: "gradient-border-violet",
               },
             ].map((mode) => (
-              <Link key={mode.label} to={mode.to}>
-                <Card className="border-border/60 hover:border-primary/30 transition-colors cursor-pointer h-full">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <mode.icon size={16} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{mode.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {mode.desc}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <motion.div key={mode.label} whileHover={{ y: -2 }}>
+                <Link to={mode.to}>
+                  <Card
+                    className={`glass-card ${mode.glow} hover:shadow-glow transition-all duration-300 cursor-pointer h-full`}
+                  >
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${mode.bg} ${mode.color} ring-1 ring-current/20`}
+                      >
+                        <mode.icon size={16} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{mode.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {mode.desc}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </section>

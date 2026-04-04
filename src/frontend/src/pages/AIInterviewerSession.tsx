@@ -317,254 +317,298 @@ Return ONLY plain text. No JSON. No markdown. Format: [feedback line]. [Next que
     if (lastQuestion) speak(lastQuestion);
   };
 
+  const progressPct = Math.min((questionCount / 7) * 100, 100);
+
   return (
-    <div
-      className="container max-w-3xl py-6 flex flex-col gap-4"
-      style={{ minHeight: "calc(100vh - 140px)" }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
-            <MessageCircle className="h-4 w-4" />
-          </div>
-          <div>
-            <p className="font-display font-semibold text-sm">AI Interviewer</p>
-            <p className="text-xs text-muted-foreground">
-              {config.role} • Question {Math.min(questionCount, 7)}/7
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isSpeaking && (
-            <span className="flex items-center gap-1 text-xs text-primary animate-pulse">
-              <Volume2 className="h-3.5 w-3.5" /> AI Speaking...
-            </span>
-          )}
-          {cameraActive ? (
-            <span className="flex items-center gap-1 text-xs text-green-400">
-              <Camera className="h-3.5 w-3.5" /> Live
-            </span>
-          ) : config.cameraEnabled ? (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <CameraOff className="h-3.5 w-3.5" /> Camera off
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      {/* Camera panel */}
-      {config.cameraEnabled && (
-        <div className="fixed top-20 right-4 z-40 rounded-xl overflow-hidden border border-border/60 shadow-lg bg-black">
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            style={{ width: 160, height: 120, objectFit: "cover" }}
-          />
-          {!cameraActive && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-              <CameraOff className="h-6 w-6 text-muted-foreground" />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Chat messages */}
+    <div className="console-bg" style={{ minHeight: "calc(100vh - 4rem)" }}>
       <div
-        className="flex-1 overflow-y-auto flex flex-col gap-3 rounded-xl border border-border/50 bg-muted/10 p-4"
-        style={{ minHeight: 380, maxHeight: 480 }}
+        className="container max-w-3xl py-6 flex flex-col gap-4"
+        style={{ minHeight: "calc(100vh - 140px)" }}
       >
-        <AnimatePresence initial={false}>
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`flex ${
-                msg.role === "interviewer" ? "justify-start" : "justify-end"
-              }`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === "interviewer"
-                    ? "bg-primary/10 text-foreground rounded-tl-sm border border-primary/20"
-                    : "bg-muted text-foreground rounded-tr-sm border border-border/50"
+        {/* Header */}
+        <div className="glass-card gradient-border-blue rounded-2xl px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-glow text-white">
+              <MessageCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-sm">AI Interviewer</p>
+              <p className="text-xs text-muted-foreground">
+                {config.role} • Question {Math.min(questionCount, 7)}/7
+              </p>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="w-24 h-1.5 rounded-full bg-muted/40 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full transition-all duration-700"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {Math.min(questionCount, 7)}/7
+              </span>
+            </div>
+            {isSpeaking && (
+              <span className="flex items-center gap-1.5 text-xs text-primary">
+                <div className="flex gap-0.5 items-end h-4">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="waveform-bar"
+                      style={{ height: "8px" }}
+                    />
+                  ))}
+                </div>
+                Speaking
+              </span>
+            )}
+            {cameraActive ? (
+              <span className="flex items-center gap-1 text-xs text-success">
+                <Camera className="h-3.5 w-3.5" /> Live
+              </span>
+            ) : config.cameraEnabled ? (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <CameraOff className="h-3.5 w-3.5" />
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Camera panel */}
+        {config.cameraEnabled && (
+          <div className="fixed top-20 right-4 z-40 rounded-xl overflow-hidden glass-card gradient-border-blue shadow-glow">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              style={{ width: 160, height: 120, objectFit: "cover" }}
+            />
+            {!cameraActive && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                <CameraOff className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Chat messages */}
+        <div
+          className="flex-1 overflow-y-auto flex flex-col gap-3 glass-card gradient-border-blue rounded-2xl p-5"
+          style={{ minHeight: 380, maxHeight: 480 }}
+        >
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex ${
+                  msg.role === "interviewer" ? "justify-start" : "justify-end"
                 }`}
               >
-                {msg.role === "interviewer" && (
-                  <p className="text-[10px] font-semibold text-primary/80 uppercase tracking-wider mb-1">
-                    AI Interviewer
-                  </p>
-                )}
-                {msg.role === "candidate" && (
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                    You
-                  </p>
-                )}
-                <p className="whitespace-pre-wrap">{msg.text}</p>
-              </div>
-            </motion.div>
-          ))}
-
-          {state === "greeting" && (
-            <motion.div
-              key="greeting-loading"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex justify-start"
-            >
-              <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-tl-sm px-4 py-3">
-                <p className="text-[10px] font-semibold text-primary/80 uppercase tracking-wider mb-1">
-                  AI Interviewer
-                </p>
-                <TypingDots />
-              </div>
-            </motion.div>
-          )}
-
-          {state === "thinking" && (
-            <motion.div
-              key="thinking-loading"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex justify-start"
-            >
-              <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-tl-sm px-4 py-3">
-                <p className="text-[10px] font-semibold text-primary/80 uppercase tracking-wider mb-1">
-                  AI Interviewer
-                </p>
-                <TypingDots />
-              </div>
-            </motion.div>
-          )}
-
-          {state === "ended" && (
-            <motion.div
-              key="ended-card"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex justify-center mt-4"
-            >
-              <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center max-w-sm">
-                <p className="text-sm font-semibold text-green-400 mb-3">
-                  Interview Complete
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => void navigate({ to: "/ai-interviewer" })}
-                    className="gap-1"
-                    data-ocid="ai_interviewer_session.secondary_button"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    New Interview
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => void navigate({ to: "/candidate" })}
-                    data-ocid="ai_interviewer_session.primary_button"
-                  >
-                    Dashboard
-                  </Button>
+                <div
+                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === "interviewer"
+                      ? "bg-primary/10 text-foreground rounded-tl-sm border border-primary/25 backdrop-blur-sm"
+                      : "bg-white/5 text-foreground rounded-tr-sm border border-white/10 backdrop-blur-sm"
+                  }`}
+                >
+                  {msg.role === "interviewer" && (
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <div className="h-4 w-4 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                        <MessageCircle className="h-2.5 w-2.5 text-white" />
+                      </div>
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                        AI Interviewer
+                      </p>
+                    </div>
+                  )}
+                  {msg.role === "candidate" && (
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1">
+                      You
+                    </p>
+                  )}
+                  <p className="whitespace-pre-wrap">{msg.text}</p>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div ref={messagesEndRef} />
-      </div>
+              </motion.div>
+            ))}
 
-      {/* Input area */}
-      {state !== "ended" && (
-        <div className="flex flex-col gap-2">
-          {state === "waiting" && config.voiceMode && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-              <span>Speak or type your answer</span>
-              <button
-                type="button"
-                onClick={replayQuestion}
-                className="flex items-center gap-1 text-primary hover:underline"
+            {state === "greeting" && (
+              <motion.div
+                key="greeting-loading"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex justify-start"
               >
-                <Volume2 className="h-3.5 w-3.5" /> Replay question
-              </button>
-            </div>
-          )}
-          <div className="flex gap-2 items-end">
-            <Textarea
-              placeholder={
-                state === "waiting"
-                  ? "Type your answer here..."
-                  : "Waiting for AI..."
-              }
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              disabled={state !== "waiting"}
-              className="min-h-[80px] resize-none flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && e.ctrlKey) {
-                  void handleSubmit();
-                }
-              }}
-              data-ocid="ai_interviewer_session.textarea"
-            />
-            <div className="flex flex-col gap-2">
-              {config.voiceMode && (
+                <div className="bg-primary/10 border border-primary/25 rounded-2xl rounded-tl-sm px-4 py-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <div className="h-4 w-4 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                      <MessageCircle className="h-2.5 w-2.5 text-white" />
+                    </div>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                      AI Interviewer
+                    </p>
+                  </div>
+                  <TypingDots />
+                </div>
+              </motion.div>
+            )}
+
+            {state === "thinking" && (
+              <motion.div
+                key="thinking-loading"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex justify-start"
+              >
+                <div className="bg-primary/10 border border-primary/25 rounded-2xl rounded-tl-sm px-4 py-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <div className="h-4 w-4 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                      <MessageCircle className="h-2.5 w-2.5 text-white" />
+                    </div>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                      AI Interviewer
+                    </p>
+                  </div>
+                  <TypingDots />
+                </div>
+              </motion.div>
+            )}
+
+            {state === "ended" && (
+              <motion.div
+                key="ended-card"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex justify-center mt-4"
+              >
+                <div className="rounded-2xl glass-card gradient-border-emerald p-6 text-center max-w-sm shadow-glow">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success mx-auto mb-3">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-bold text-success mb-4">
+                    Interview Complete ✔
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void navigate({ to: "/ai-interviewer" })}
+                      className="gap-1 border-white/20 bg-white/5 hover:bg-white/10"
+                      data-ocid="ai_interviewer_session.secondary_button"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      New Interview
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => void navigate({ to: "/candidate" })}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white btn-glow"
+                      data-ocid="ai_interviewer_session.primary_button"
+                    >
+                      Dashboard
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input area */}
+        {state !== "ended" && (
+          <div className="flex flex-col gap-2">
+            {state === "waiting" && config.voiceMode && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                <span>Speak or type your answer</span>
                 <button
                   type="button"
-                  onClick={toggleListening}
-                  disabled={state !== "waiting"}
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
-                    isListening
-                      ? "border-red-500 bg-red-500/20 text-red-400 ring-2 ring-red-500/50 animate-pulse"
-                      : "border-border/60 bg-muted/30 text-muted-foreground hover:text-foreground hover:border-primary/40"
-                  } disabled:opacity-40`}
-                  data-ocid="ai_interviewer_session.toggle"
+                  onClick={replayQuestion}
+                  className="flex items-center gap-1 text-primary hover:underline"
                 >
-                  {isListening ? (
-                    <MicOff className="h-4 w-4" />
-                  ) : (
-                    <Mic className="h-4 w-4" />
-                  )}
+                  <Volume2 className="h-3.5 w-3.5" /> Replay question
                 </button>
-              )}
-              <Button
-                size="icon"
-                onClick={() => void handleSubmit()}
-                disabled={state !== "waiting" || !answer.trim()}
-                className="h-10 w-10"
-                data-ocid="ai_interviewer_session.submit_button"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              </div>
+            )}
+            <div className="flex gap-2 items-end">
+              <Textarea
+                placeholder={
+                  state === "waiting"
+                    ? "Type your answer here..."
+                    : "Waiting for AI..."
+                }
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                disabled={state !== "waiting"}
+                className="min-h-[80px] resize-none flex-1 glass-card border-white/10 bg-background/30 focus:border-primary/50 focus:shadow-glow"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.ctrlKey) {
+                    void handleSubmit();
+                  }
+                }}
+                data-ocid="ai_interviewer_session.textarea"
+              />
+              <div className="flex flex-col gap-2">
+                {config.voiceMode && (
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    disabled={state !== "waiting"}
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${
+                      isListening
+                        ? "border-red-500 bg-red-500/20 text-red-400 ring-2 ring-red-500/50 animate-pulse"
+                        : "glass-card border-white/10 text-muted-foreground hover:text-foreground hover:border-primary/40"
+                    } disabled:opacity-40`}
+                    data-ocid="ai_interviewer_session.toggle"
+                  >
+                    {isListening ? (
+                      <MicOff className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+                <Button
+                  size="icon"
+                  onClick={() => void handleSubmit()}
+                  disabled={state !== "waiting" || !answer.trim()}
+                  className="h-11 w-11 bg-gradient-to-br from-blue-600 to-purple-600 text-white hover:opacity-90 btn-glow"
+                  data-ocid="ai_interviewer_session.submit_button"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground text-right">
+              Ctrl+Enter to submit
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground text-right">
-            Ctrl+Enter to submit
-          </p>
-        </div>
-      )}
+        )}
 
-      {/* Error state if no config */}
-      {!config.role && (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm">
-          <AlertCircle className="h-4 w-4 text-destructive" />
-          <p>No interview configuration found.</p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void navigate({ to: "/ai-interviewer" })}
-            className="ml-auto"
-          >
-            Go to Setup
-          </Button>
-        </div>
-      )}
+        {/* Error state if no config */}
+        {!config.role && (
+          <div className="flex items-center gap-2 rounded-xl glass-card gradient-border-blue p-3 text-sm">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <p>No interview configuration found.</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void navigate({ to: "/ai-interviewer" })}
+              className="ml-auto border-white/20 bg-white/5"
+            >
+              Go to Setup
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
