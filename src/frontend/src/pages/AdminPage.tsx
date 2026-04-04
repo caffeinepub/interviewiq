@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CheckCircle2,
@@ -18,73 +18,93 @@ import {
   UserCog,
   Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useClaimFirstAdmin, useGetAdminAssigned } from "../hooks/useQueries";
 
 export function AdminPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { identity, login, isLoggingIn, isInitializing } =
     useInternetIdentity();
   const isAuthenticated = !!identity;
 
   const { actor, isFetching: actorFetching } = useActor();
-  const claimAdmin = useClaimFirstAdmin();
 
-  const [registered, setRegistered] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // Track the full setup sequence: register -> checkAdmin
+  const [setupStep, setSetupStep] = useState<
+    "idle" | "registering" | "checking" | "done"
+  >("idle");
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [adminAssigned, setAdminAssigned] = useState<boolean | null>(null);
   const [claiming, setClaiming] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const setupStarted = useRef(false);
 
-  // Step 1: Register user before checking admin status
+  // Run the full setup sequence once actor is ready
   useEffect(() => {
-    if (!isAuthenticated || !actor || registered) return;
+    if (!isAuthenticated || !actor || actorFetching || setupStarted.current)
+      return;
+    setupStarted.current = true;
+
     void (async () => {
+      setSetupStep("registering");
+
+      // Step 1: Register (safe to call multiple times)
       try {
         await actor.selfRegisterAsUser();
       } catch {
-        // already registered
+        // already registered — ignore
       }
-      setRegistered(true);
-    })();
-  }, [isAuthenticated, actor, registered]);
 
-  // Step 2: Check if admin has been claimed (public query — no auth needed)
-  const { data: adminAssigned, isLoading: checkingAdminAssigned } =
-    useGetAdminAssigned();
+      // Small delay to let state settle
+      await new Promise((r) => setTimeout(r, 300));
 
-  // Step 3: Check if current caller is admin (after registration)
-  const {
-    data: isAdmin,
-    isLoading: checkingAdmin,
-    refetch: refetchAdmin,
-  } = useQuery<boolean>({
-    queryKey: ["isAdmin"],
-    queryFn: async () => {
-      if (!actor) return false;
+      setSetupStep("checking");
+
+      // Step 2: Check admin status
+      let adminStatus = false;
       try {
-        return await actor.isCallerAdmin();
+        adminStatus = await actor.isCallerAdmin();
       } catch {
-        return false;
+        adminStatus = false;
       }
-    },
-    enabled: !!actor && !actorFetching && registered,
-  });
 
-  // If already admin, redirect to dashboard immediately
+      // Step 3: Check if admin has been claimed globally
+      let assigned = false;
+      try {
+        assigned = await actor.getAdminAssigned();
+      } catch {
+        assigned = false;
+      }
+
+      setIsAdmin(adminStatus);
+      setAdminAssigned(assigned);
+      setSetupStep("done");
+
+      // If already admin, redirect immediately
+      if (adminStatus) {
+        void navigate({ to: "/admin/dashboard" });
+      }
+    })();
+  }, [isAuthenticated, actor, actorFetching, navigate]);
+
+  // Also check adminAssigned for unauthenticated users (public query)
   useEffect(() => {
-    if (isAdmin) {
-      void navigate({ to: "/admin/dashboard" });
-    }
-  }, [isAdmin, navigate]);
+    if (isAuthenticated || !actor || actorFetching || adminAssigned !== null)
+      return;
+    void actor
+      .getAdminAssigned()
+      .then(setAdminAssigned)
+      .catch(() => setAdminAssigned(false));
+  }, [isAuthenticated, actor, actorFetching, adminAssigned]);
 
   const isLoading =
     isInitializing ||
     actorFetching ||
-    checkingAdminAssigned ||
-    (isAuthenticated && !registered) ||
-    (registered && checkingAdmin);
+    (isAuthenticated && setupStep !== "done" && setupStep !== "idle") ||
+    (isAuthenticated && setupStep === "idle" && !!actor && !actorFetching);
 
   const principalFull = identity ? identity.getPrincipal().toString() : "";
 
@@ -97,22 +117,44 @@ export function AdminPage() {
   };
 
   const handleClaimAdmin = async () => {
+    if (!actor) return;
     setClaiming(true);
     try {
-      await claimAdmin.mutateAsync();
-      toast.success("Admin role activated! Redirecting to dashboard...");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await refetchAdmin();
-      void navigate({ to: "/admin/dashboard" });
+      // Ensure registered first
+      try {
+        await actor.selfRegisterAsUser();
+      } catch {
+        // already registered
+      }
+      await new Promise((r) => setTimeout(r, 200));
+
+      await actor.claimFirstAdmin();
+
+      // Verify the claim worked
+      await new Promise((r) => setTimeout(r, 500));
+      const confirmed = await actor.isCallerAdmin();
+
+      if (confirmed) {
+        // Invalidate all cached queries so dashboard loads fresh
+        await queryClient.invalidateQueries();
+        toast.success("Admin role activated! Redirecting...");
+        await new Promise((r) => setTimeout(r, 800));
+        void navigate({ to: "/admin/dashboard" });
+      } else {
+        toast.error(
+          "Claim appeared to succeed but admin status was not confirmed. Please try again.",
+        );
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (
-        message.includes("Admin already claimed") ||
+        message.includes("Admin has already been claimed") ||
         message.includes("already been claimed")
       ) {
         toast.error(
-          "Admin role is already taken. Share your Principal ID with the existing admin to get your role assigned.",
+          "Admin role is already taken. Share your Principal ID with the existing admin.",
         );
+        setAdminAssigned(true);
       } else {
         toast.error(`Could not activate admin role: ${message}`);
       }
@@ -140,8 +182,15 @@ export function AdminPage() {
         {/* Loading */}
         {isLoading && (
           <Card className="border-border/60" data-ocid="admin.loading_state">
-            <CardContent className="flex items-center justify-center py-12">
+            <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-xs text-muted-foreground">
+                {setupStep === "registering"
+                  ? "Registering account..."
+                  : setupStep === "checking"
+                    ? "Checking admin status..."
+                    : "Connecting..."}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -177,8 +226,8 @@ export function AdminPage() {
           </Card>
         )}
 
-        {/* Authenticated — not yet admin */}
-        {!isLoading && isAuthenticated && !isAdmin && (
+        {/* Authenticated — setup done — not admin */}
+        {!isLoading && isAuthenticated && setupStep === "done" && !isAdmin && (
           <>
             {/* Identity info bar */}
             <div className="flex items-center justify-between rounded-lg bg-muted/40 border border-border/60 px-4 py-3 gap-3">
