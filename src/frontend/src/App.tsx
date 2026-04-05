@@ -23,6 +23,7 @@ import { AuthPage } from "./pages/AuthPage";
 import { CandidateDashboard } from "./pages/CandidateDashboard";
 import { CandidateReport } from "./pages/CandidateReport";
 import { EvaluatorDashboard } from "./pages/EvaluatorDashboard";
+import { FAQPage } from "./pages/FAQPage";
 import { GeminiInterviewResults } from "./pages/GeminiInterviewResults";
 import { GeminiInterviewSession } from "./pages/GeminiInterviewSession";
 import { GeminiInterviewSetup } from "./pages/GeminiInterviewSetup";
@@ -226,6 +227,12 @@ const aiInterviewerSessionRoute = createRoute({
   component: AIInterviewerSession,
 });
 
+const faqRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/faq",
+  component: FAQPage,
+});
+
 // Router
 const routeTree = rootRoute.addChildren([
   landingRoute,
@@ -256,6 +263,7 @@ const routeTree = rootRoute.addChildren([
   panelInterviewRoute,
   aiInterviewerRoute,
   aiInterviewerSessionRoute,
+  faqRoute,
 ]);
 
 const router = createRouter({ routeTree });

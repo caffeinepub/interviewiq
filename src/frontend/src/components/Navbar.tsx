@@ -17,6 +17,7 @@ import {
   Briefcase,
   ChevronDown,
   GraduationCap,
+  HelpCircle,
   LayoutDashboard,
   Lightbulb,
   Loader2,
@@ -151,6 +152,13 @@ export function Navbar() {
             active={location.pathname === "/admissions"}
             ocid="nav.admissions_link"
           />
+          <NavLink
+            to="/faq"
+            label="Help"
+            icon={<HelpCircle size={15} />}
+            active={location.pathname === "/faq"}
+            ocid="nav.help_link"
+          />
           {isAuthenticated && !isAdmin && (
             <>
               <NavLink
@@ -253,6 +261,12 @@ export function Navbar() {
                   <Link to="/admissions" data-ocid="nav.admissions_link">
                     <GraduationCap size={14} className="mr-2" />
                     Admissions Portal
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/faq" data-ocid="nav.help_link">
+                    <HelpCircle size={14} className="mr-2" />
+                    Help &amp; FAQ
                   </Link>
                 </DropdownMenuItem>
                 {!isAdmin && (
