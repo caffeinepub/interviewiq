@@ -1,29 +1,27 @@
-# InterviewIQ — FAQ Dashboard
+# InterviewIQ
 
 ## Current State
-InterviewIQ is a full-featured AI interview platform with many pages. No dedicated FAQ/Help Center page exists.
+The admin portal (`/admin`) uses Internet Identity as its only authentication gate. There is no password protection — anyone who navigates to `/admin` can attempt to become admin immediately.
 
 ## Requested Changes (Diff)
 
 ### Add
-- New `/faq` route and `FAQPage` component
-- Professional help center layout with:
-  - Hero section with search bar and category pill filters
-  - 3-column grid: left sidebar (FAQ sections), center accordion (questions), right sidebar (popular articles)
-  - Support/contact CTA band with X (Twitter), Instagram social links and default email button
-  - Footer social icons (X, Instagram)
-- FAQ data: ~20 questions across categories (Getting Started, Assessments, AI Features, Proctoring, Account & Billing, Privacy)
-- Social links: X → https://x.com/interviewiq, Instagram → https://instagram.com/interviewiq
-- Default email: mailto:support@interviewiq.ai
+- A password login screen as the **first gate** on the `/admin` route
+- The password is a fixed admin secret stored as a constant (default: `admin@interviewiq2026`)
+- On correct password entry the session is marked as password-verified in `sessionStorage` so the user isn't prompted again on the same tab
+- A "Show/Hide password" toggle on the input
+- Error feedback for wrong password
+- The existing Internet Identity flow, admin claim, and all dashboard logic remain completely intact — password gate just wraps around them
 
 ### Modify
-- `App.tsx` — add `/faq` route
-- `Navbar.tsx` — add "Help" or "FAQ" link in nav
+- `AdminPage.tsx`: render a premium password gate card when `passwordVerified` state is false; after correct entry set verified state and render the existing page content as-is
 
 ### Remove
-- Nothing removed
+- Nothing is removed — all existing admin features preserved
 
 ## Implementation Plan
-1. Create `FAQPage.tsx` with hero, search, category pills, accordion FAQ, sidebars, contact CTA, social links
-2. Register `/faq` route in `App.tsx`
-3. Add FAQ link to Navbar
+1. Add `ADMIN_PASSWORD` constant at the top of `AdminPage.tsx`
+2. Add `passwordVerified` state initialised from `sessionStorage` so same-tab sessions persist
+3. Render a password gate card (with Eye/EyeOff toggle, error message, animated glow on error) when not verified
+4. On correct password: set `sessionStorage` flag and flip `passwordVerified` to true
+5. Existing JSX renders only when `passwordVerified === true`

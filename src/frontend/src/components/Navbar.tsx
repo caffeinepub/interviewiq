@@ -7,6 +7,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
@@ -21,6 +27,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   Loader2,
+  Lock,
   LogIn,
   LogOut,
   MessageCircle,
@@ -34,11 +41,43 @@ import {
   Users,
   Users2,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { toast } from "sonner";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useIsCallerAdmin } from "../hooks/useQueries";
+import { useGetCallerRole, useIsCallerAdmin } from "../hooks/useQueries";
 
-// Portal switcher pills
-function PortalSwitcher({ isAdmin }: { isAdmin: boolean | undefined }) {
+// Portal access helpers
+function canAccessEvaluator(
+  isAdmin: boolean | undefined,
+  role: string | undefined,
+): boolean {
+  return (
+    isAdmin === true ||
+    role === "evaluator" ||
+    role === "recruiter" ||
+    role === "admin"
+  );
+}
+
+function canAccessRecruiter(
+  isAdmin: boolean | undefined,
+  role: string | undefined,
+): boolean {
+  return isAdmin === true || role === "recruiter" || role === "admin";
+}
+
+function canAccessAdmin(isAdmin: boolean | undefined): boolean {
+  return isAdmin === true;
+}
+
+// Portal switcher pills — RBAC-aware
+function PortalSwitcher({
+  isAdmin,
+  callerRole,
+}: {
+  isAdmin: boolean | undefined;
+  callerRole: string | undefined;
+}) {
   const location = useLocation();
 
   const isCandidate =
@@ -60,59 +99,135 @@ function PortalSwitcher({ isAdmin }: { isAdmin: boolean | undefined }) {
     location.pathname.startsWith("/interview-answers");
 
   const isRecruiter = location.pathname.startsWith("/recruiter");
-
   const isAdminPortal = location.pathname.startsWith("/admin");
 
-  const portals = [
+  const evaluatorAccessible = canAccessEvaluator(isAdmin, callerRole);
+  const recruiterAccessible = canAccessRecruiter(isAdmin, callerRole);
+  const adminAccessible = canAccessAdmin(isAdmin);
+
+  const portals: Array<{
+    label: string;
+    icon: React.ReactNode;
+    to: string;
+    active: boolean;
+    accessible: boolean;
+    ocid: string;
+    lockedMessage: string;
+    tooltipText: string;
+  }> = [
     {
       label: "Candidate",
-      icon: <User size={13} />,
+      icon: <ShieldCheck size={13} />,
       to: "/candidate",
       active: isCandidate,
+      accessible: true,
       ocid: "nav.candidate_portal_button",
-    },
-    {
-      label: "Recruiter",
-      icon: <Briefcase size={13} />,
-      to: "/recruiter",
-      active: isRecruiter,
-      ocid: "nav.recruiter_portal_button",
+      lockedMessage: "",
+      tooltipText: "Your candidate portal",
     },
     {
       label: "Evaluator",
       icon: <Users size={13} />,
       to: "/evaluator",
       active: isEvaluator,
+      accessible: evaluatorAccessible,
       ocid: "nav.evaluator_portal_button",
+      lockedMessage:
+        "Evaluator role required. Request it from your Candidate Dashboard at /candidate.",
+      tooltipText:
+        "Evaluator or Recruiter role required — request from your dashboard",
+    },
+    {
+      label: "Recruiter",
+      icon: <Briefcase size={13} />,
+      to: "/recruiter",
+      active: isRecruiter,
+      accessible: recruiterAccessible,
+      ocid: "nav.recruiter_portal_button",
+      lockedMessage:
+        "You need the Recruiter role to access this portal. Request it from your Candidate Dashboard at /candidate.",
+      tooltipText: "Recruiter role required — request from your dashboard",
     },
     {
       label: "Admin",
       icon: <Shield size={13} />,
       to: isAdmin ? "/admin/dashboard" : "/admin",
       active: isAdminPortal,
+      accessible: adminAccessible,
       ocid: "nav.admin_portal_button",
+      lockedMessage:
+        "Admin role required — only the platform admin can access this.",
+      tooltipText:
+        "Admin role required — only the platform admin can access this",
     },
   ];
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-sm">
-      {portals.map((portal) => (
-        <Link
-          key={portal.label}
-          to={portal.to}
-          data-ocid={portal.ocid}
-          className={cn(
-            "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200",
-            portal.active
-              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm tab-active-glow"
-              : "text-white/60 hover:bg-white/10 hover:text-white/90",
-          )}
-        >
-          {portal.icon}
-          <span className="hidden sm:inline">{portal.label}</span>
-        </Link>
-      ))}
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <motion.div
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-sm"
+      >
+        {portals.map((portal) => {
+          if (!portal.accessible) {
+            // On mobile: hide locked portals entirely
+            return (
+              <Tooltip key={portal.label}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    data-ocid={portal.ocid}
+                    onClick={() => toast.info(portal.lockedMessage)}
+                    className={cn(
+                      "hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200",
+                      "opacity-40 cursor-not-allowed text-white/40 hover:bg-white/5",
+                    )}
+                    aria-disabled="true"
+                  >
+                    <Lock size={12} className="shrink-0" />
+                    <span className="hidden sm:inline">{portal.label}</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  className="max-w-[220px] text-center text-xs bg-slate-900 border-white/10 text-white/80"
+                >
+                  {portal.tooltipText}
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <Tooltip key={portal.label}>
+              <TooltipTrigger asChild>
+                <Link
+                  to={portal.to}
+                  data-ocid={portal.ocid}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200",
+                    portal.active
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm tab-active-glow"
+                      : "text-white/60 hover:bg-white/10 hover:text-white/90",
+                  )}
+                >
+                  {portal.icon}
+                  <span className="hidden sm:inline">{portal.label}</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className="text-xs bg-slate-900 border-white/10 text-white/80"
+              >
+                {portal.tooltipText}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </motion.div>
+    </TooltipProvider>
   );
 }
 
@@ -121,6 +236,7 @@ export function Navbar() {
     useInternetIdentity();
   const isAuthenticated = !!identity;
   const { data: isAdmin } = useIsCallerAdmin();
+  const { data: callerRole } = useGetCallerRole();
   const location = useLocation();
 
   const principalShort = identity
@@ -141,7 +257,9 @@ export function Navbar() {
         </Link>
 
         {/* Portal Switcher — center */}
-        {isAuthenticated && <PortalSwitcher isAdmin={isAdmin} />}
+        {isAuthenticated && (
+          <PortalSwitcher isAdmin={isAdmin} callerRole={callerRole} />
+        )}
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-1">

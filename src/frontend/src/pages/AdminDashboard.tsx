@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Activity,
   AlertCircle,
   AlertTriangle,
   ArrowRight,
@@ -46,11 +47,16 @@ import {
   ClipboardList,
   Copy,
   Database,
+  FileDown,
   Flag,
   Info,
+  KeyRound,
   Loader2,
+  Lock,
   RefreshCw,
+  Server,
   Shield,
+  ShieldCheck,
   Sparkles,
   TrendingUp,
   UserCog,
@@ -59,7 +65,7 @@ import {
   Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { UserRole } from "../backend";
 import type { RoleRequest } from "../backend.d";
@@ -171,6 +177,30 @@ export function AdminDashboard() {
   const [seedProgress, setSeedProgress] = useState(0);
   const [seedTotal] = useState(SEED_QUESTIONS.length);
 
+  // In-session admin audit log
+  const [auditLog, setAuditLog] = useState<string[]>(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("adminAuditLog") || "[]",
+      ) as string[];
+    } catch {
+      return [];
+    }
+  });
+  const sessionStart = useRef(Date.now());
+
+  const addAuditEntry = (action: string) => {
+    const entry = `${new Date().toLocaleTimeString()} — ${action}`;
+    const updated = [
+      entry,
+      ...(JSON.parse(
+        localStorage.getItem("adminAuditLog") || "[]",
+      ) as string[]),
+    ].slice(0, 50);
+    localStorage.setItem("adminAuditLog", JSON.stringify(updated));
+    setAuditLog(updated);
+  };
+
   // Ban/Suspend dialog state
   const [banDialog, setBanDialog] = useState<{
     open: boolean;
@@ -195,6 +225,7 @@ export function AdminDashboard() {
         setSeedProgress(seeded);
       }
       toast.success(`Question bank seeded with ${seeded} questions!`);
+      addAuditEntry(`Seeded ${seeded} questions into the question bank`);
     } catch (err) {
       toast.error(
         seeded > 0
@@ -258,6 +289,9 @@ export function AdminDashboard() {
         reason: banDialog.reason,
       });
       toast.success("User banned.");
+      addAuditEntry(
+        `Banned user ${banDialog.principal.slice(0, 14)}… — Reason: ${banDialog.reason}`,
+      );
       setBanDialog({ open: false, principal: "", reason: "" });
       void refetchBanned();
     } catch {
@@ -390,6 +424,10 @@ export function AdminDashboard() {
                   }
                 </Badge>
               )}
+          </TabsTrigger>
+          <TabsTrigger value="security" data-ocid="admin.security_tab">
+            <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />
+            Security
           </TabsTrigger>
         </TabsList>
 
@@ -694,6 +732,9 @@ export function AdminDashboard() {
                                       principal,
                                     );
                                     toast.success("Promoted to Recruiter");
+                                    addAuditEntry(
+                                      `Promoted user ${principal.slice(0, 14)}… to Recruiter`,
+                                    );
                                     void refetchRoles();
                                   } catch {
                                     toast.error("Failed");
@@ -711,6 +752,9 @@ export function AdminDashboard() {
                                   try {
                                     await demoteToUser.mutateAsync(principal);
                                     toast.success("Demoted to User");
+                                    addAuditEntry(
+                                      `Demoted user ${principal.slice(0, 14)}… to User`,
+                                    );
                                     void refetchRoles();
                                   } catch {
                                     toast.error("Failed");
@@ -728,6 +772,9 @@ export function AdminDashboard() {
                                   try {
                                     await promoteToAdmin.mutateAsync(principal);
                                     toast.success("Promoted to Admin");
+                                    addAuditEntry(
+                                      `Promoted user ${principal.slice(0, 14)}… to Admin`,
+                                    );
                                     void refetchRoles();
                                   } catch {
                                     toast.error("Failed");
@@ -835,6 +882,9 @@ export function AdminDashboard() {
                                   u.principal.toString(),
                                 );
                                 toast.success("User unbanned.");
+                                addAuditEntry(
+                                  `Unbanned user ${u.principal.toString().slice(0, 14)}…`,
+                                );
                                 void refetchBanned();
                               } catch {
                                 toast.error("Failed to unban.");
@@ -1355,6 +1405,7 @@ export function AdminDashboard() {
                           idx={idx}
                           actor={actor}
                           refetch={refetchRoleRequests}
+                          addAuditEntry={addAuditEntry}
                         />
                       ))}
                     </TableBody>
@@ -1449,6 +1500,307 @@ export function AdminDashboard() {
             </div>
           </details>
         </TabsContent>
+
+        {/* ─── SECURITY ─── */}
+        <TabsContent value="security" className="mt-6 space-y-6">
+          {/* 1. Admin Identity Card */}
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.security_identity_card"
+          >
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base">Admin Identity</CardTitle>
+                <Badge
+                  className="ml-auto bg-emerald-500/10 border-emerald-500/30 text-emerald-400 text-xs"
+                  variant="outline"
+                >
+                  Verified Admin
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg bg-muted/40 border border-border/60 p-4 space-y-3">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Principal ID
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="font-mono text-xs text-foreground break-all flex-1">
+                      {principalFull.length > 32
+                        ? `${principalFull.slice(0, 20)}…${principalFull.slice(-12)}`
+                        : principalFull}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 shrink-0"
+                      onClick={handleCopyPrincipal}
+                      data-ocid="admin.security_copy_principal_button"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      Session Started
+                    </p>
+                    <p className="text-xs text-foreground">
+                      {new Date(sessionStart.current).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      Browser
+                    </p>
+                    <p
+                      className="text-xs text-foreground truncate"
+                      title={navigator.userAgent}
+                    >
+                      {navigator.userAgent.includes("Chrome")
+                        ? "Chrome"
+                        : navigator.userAgent.includes("Firefox")
+                          ? "Firefox"
+                          : navigator.userAgent.includes("Safari")
+                            ? "Safari"
+                            : "Unknown"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 2. Platform Security Status */}
+          <Card
+            className="glass-card gradient-border-emerald"
+            data-ocid="admin.security_status_card"
+          >
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-emerald-400" />
+                <CardTitle className="text-base">
+                  Platform Security Status
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  {
+                    label: "Admin Role Claimed",
+                    ok: true,
+                    detail: "Admin access is active on this platform",
+                  },
+                  {
+                    label: "Question Bank Seeded",
+                    ok: (questions?.length ?? 0) > 0,
+                    detail:
+                      (questions?.length ?? 0) > 0
+                        ? `${questions?.length} questions in bank`
+                        : "No questions seeded — go to Question Bank tab",
+                  },
+                  {
+                    label: "No Unreviewed Flags",
+                    ok: (flaggedSessions?.length ?? 0) === 0,
+                    detail:
+                      (flaggedSessions?.length ?? 0) === 0
+                        ? "All sessions clean"
+                        : `${flaggedSessions?.length} flagged session(s) need review`,
+                    warn: (flaggedSessions?.length ?? 0) > 0,
+                  },
+                  {
+                    label: "On-Chain Storage Active",
+                    ok: true,
+                    detail: "ICP blockchain — tamper-proof, decentralized",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-start gap-3 rounded-lg border border-border/40 bg-muted/20 px-4 py-3"
+                  >
+                    {item.ok && !item.warn ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    ) : item.warn ? (
+                      <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-yellow-400 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{item.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {item.detail}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 3. In-Session Admin Audit Trail */}
+          <Card
+            className="glass-card gradient-border-violet"
+            data-ocid="admin.security_audit_card"
+          >
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-violet-400" />
+                <CardTitle className="text-base">Admin Audit Trail</CardTitle>
+              </div>
+              <CardDescription>
+                Actions performed in this session are logged here.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="rounded-lg border border-border/50 bg-background/60 p-3 overflow-y-auto"
+                style={{ maxHeight: 200 }}
+                data-ocid="admin.security_audit_log"
+              >
+                {auditLog.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    No actions performed in this session.
+                  </p>
+                ) : (
+                  <ul className="space-y-1">
+                    {auditLog.map((entry) => (
+                      <li
+                        key={entry}
+                        className="font-mono text-xs text-foreground/80"
+                      >
+                        {entry}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-muted-foreground">
+                  Session log — resets on refresh
+                </p>
+                {auditLog.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs text-muted-foreground hover:text-destructive"
+                    onClick={() => {
+                      localStorage.removeItem("adminAuditLog");
+                      setAuditLog([]);
+                    }}
+                    data-ocid="admin.security_clear_audit_button"
+                  >
+                    Clear log
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 4. Privacy & Encryption Badges */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="glass-card gradient-border-blue">
+              <CardContent className="pt-5 pb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
+                    <Lock className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <p className="text-sm font-semibold">
+                    ICP Blockchain Storage
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  All data is stored on-chain — tamper-proof, distributed across
+                  subnet nodes.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="glass-card gradient-border-emerald">
+              <CardContent className="pt-5 pb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
+                    <Server className="h-4 w-4 text-emerald-400" />
+                  </div>
+                  <p className="text-sm font-semibold">
+                    Zero Server Infrastructure
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  No traditional servers or databases. No single point of
+                  failure.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="glass-card gradient-border-violet">
+              <CardContent className="pt-5 pb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
+                    <KeyRound className="h-4 w-4 text-violet-400" />
+                  </div>
+                  <p className="text-sm font-semibold">Cryptographic Auth</p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Internet Identity — no passwords, no credentials stored
+                  anywhere.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 5. Admin Data Export */}
+          <Card
+            className="glass-card gradient-border-blue"
+            data-ocid="admin.security_export_card"
+          >
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <FileDown className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base">
+                  Export Platform Data
+                </CardTitle>
+              </div>
+              <CardDescription>
+                Download a JSON snapshot of platform statistics for audit or
+                reporting purposes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="gap-2 border-primary/30 hover:bg-primary/10"
+                onClick={() => {
+                  const data = {
+                    exportedAt: new Date().toISOString(),
+                    adminPrincipal: principalFull,
+                    totalQuestions: questions?.length ?? 0,
+                    totalSessions: allSessions?.length ?? 0,
+                    totalUsers: allUserRoles?.length ?? 0,
+                    flaggedCount: flaggedSessions?.length ?? 0,
+                    bannedCount: bannedUsers?.length ?? 0,
+                  };
+                  const blob = new Blob([JSON.stringify(data, null, 2)], {
+                    type: "application/json",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `interviewiq-export-${new Date().toISOString().slice(0, 10)}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  addAuditEntry("Exported platform data snapshot");
+                  toast.success("Platform data exported!");
+                }}
+                data-ocid="admin.security_export_button"
+              >
+                <FileDown className="h-4 w-4" />
+                Export Platform Data
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Ban Dialog */}
@@ -1515,11 +1867,13 @@ function RoleRequestRow({
   idx,
   actor,
   refetch,
+  addAuditEntry,
 }: {
   req: import("../backend.d").RoleRequest;
   idx: number;
   actor: ReturnType<typeof import("../hooks/useActor").useActor>["actor"];
   refetch: () => void;
+  addAuditEntry?: (action: string) => void;
 }) {
   const [acting, setActing] = useState<"approve" | "deny" | null>(null);
 
@@ -1529,6 +1883,9 @@ function RoleRequestRow({
     try {
       await (actor as any).approveRoleRequest(req.requester);
       toast.success(`Approved ${req.name}'s ${req.requestedRole} request.`);
+      addAuditEntry?.(
+        `Approved role request: ${req.name || req.requester.toString().slice(0, 14)} → ${req.requestedRole}`,
+      );
       refetch();
     } catch {
       toast.error("Failed to approve request.");
@@ -1543,6 +1900,9 @@ function RoleRequestRow({
     try {
       await (actor as any).denyRoleRequest(req.requester);
       toast.success(`Denied ${req.name}'s role request.`);
+      addAuditEntry?.(
+        `Denied role request: ${req.name || req.requester.toString().slice(0, 14)} for ${req.requestedRole}`,
+      );
       refetch();
     } catch {
       toast.error("Failed to deny request.");

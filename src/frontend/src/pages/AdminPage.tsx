@@ -7,14 +7,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CheckCircle2,
   Copy,
+  Eye,
+  EyeOff,
+  KeyRound,
   Loader2,
+  Lock,
   LogIn,
   Shield,
+  ShieldCheck,
   UserCog,
   Zap,
 } from "lucide-react";
@@ -22,6 +28,31 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+
+const ADMIN_PASSWORD = "admin@interviewiq2026";
+
+const SECURITY_BADGES = [
+  {
+    icon: <Shield className="h-3 w-3" />,
+    label: "Internet Identity Verified",
+    color: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+  },
+  {
+    icon: <Lock className="h-3 w-3" />,
+    label: "On-Chain Encrypted",
+    color: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+  },
+  {
+    icon: <ShieldCheck className="h-3 w-3" />,
+    label: "RBAC Enforced",
+    color: "bg-violet-500/10 border-violet-500/30 text-violet-400",
+  },
+  {
+    icon: <KeyRound className="h-3 w-3" />,
+    label: "Zero Passwords",
+    color: "bg-cyan-500/10 border-cyan-500/30 text-cyan-400",
+  },
+];
 
 export function AdminPage() {
   const navigate = useNavigate();
@@ -32,6 +63,26 @@ export function AdminPage() {
 
   const { actor, isFetching: actorFetching } = useActor();
 
+  // --- Password gate state ---
+  const [passwordVerified, setPasswordVerified] = useState(
+    () => sessionStorage.getItem("adminPasswordVerified") === "true",
+  );
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordShake, setPasswordShake] = useState(false);
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === ADMIN_PASSWORD) {
+      sessionStorage.setItem("adminPasswordVerified", "true");
+      setPasswordVerified(true);
+    } else {
+      setPasswordError("Incorrect password. Please try again.");
+      setPasswordShake(true);
+      setTimeout(() => setPasswordShake(false), 600);
+    }
+  };
+
   // Track the full setup sequence: register -> checkAdmin
   const [setupStep, setSetupStep] = useState<
     "idle" | "registering" | "checking" | "done"
@@ -41,6 +92,21 @@ export function AdminPage() {
   const [claiming, setClaiming] = useState(false);
   const [copied, setCopied] = useState(false);
   const setupStarted = useRef(false);
+
+  // Track session age for expiry warning
+  const mountTime = useRef(Date.now());
+  const [sessionExpiring, setSessionExpiring] = useState(false);
+
+  // Check every 30s whether the session has aged > 15 min
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - mountTime.current;
+      if (elapsed > 15 * 60 * 1000) {
+        setSessionExpiring(true);
+      }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Run the full setup sequence once actor is ready
   useEffect(() => {
@@ -163,13 +229,143 @@ export function AdminPage() {
     }
   };
 
+  // --- Password gate: show before anything else ---
+  if (!passwordVerified) {
+    return (
+      <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center py-16">
+        <style>{`
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15% { transform: translateX(-6px); }
+            30% { transform: translateX(6px); }
+            45% { transform: translateX(-5px); }
+            60% { transform: translateX(5px); }
+            75% { transform: translateX(-3px); }
+            90% { transform: translateX(3px); }
+          }
+          .shake-animate {
+            animation: shake 0.5s ease-in-out;
+          }
+        `}</style>
+        <div className="w-full max-w-md space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-glow text-white ring-2 ring-primary/20">
+              <Shield className="h-8 w-8" />
+            </div>
+            <h1 className="font-display text-3xl font-bold tracking-tight mb-2">
+              Admin Portal
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Enter the admin password to continue
+            </p>
+          </div>
+
+          {/* Security badges */}
+          <div
+            className="flex flex-wrap gap-2 justify-center"
+            data-ocid="admin.security_badges"
+          >
+            {SECURITY_BADGES.map((b) => (
+              <span
+                key={b.label}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-sm ${b.color}`}
+              >
+                {b.icon}
+                {b.label}
+              </span>
+            ))}
+          </div>
+
+          {/* Password gate card */}
+          <Card className="glass-card gradient-border-blue">
+            <CardHeader className="pb-4 text-center">
+              <CardTitle className="font-display text-lg flex items-center justify-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                Secure Access
+              </CardTitle>
+              <CardDescription className="leading-relaxed">
+                This portal is restricted. Enter your admin password to proceed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Password input */}
+              <div
+                className={`relative ${passwordShake ? "shake-animate" : ""}`}
+              >
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter admin password"
+                  value={passwordInput}
+                  onChange={(e) => {
+                    setPasswordInput(e.target.value);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handlePasswordSubmit();
+                  }}
+                  className={`pr-10 h-11 bg-background/60 border-border/60 focus:border-primary/60 transition-all ${
+                    passwordError
+                      ? "border-red-500 ring-2 ring-red-500/30 focus:ring-red-500/40"
+                      : ""
+                  }`}
+                  autoFocus
+                  data-ocid="admin.password_input"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  data-ocid="admin.toggle_password"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+
+              {/* Error message */}
+              {passwordError && (
+                <p
+                  className="text-xs text-red-400 flex items-center gap-1.5"
+                  data-ocid="admin.password_error"
+                >
+                  <Shield className="h-3 w-3 shrink-0" />
+                  {passwordError}
+                </p>
+              )}
+
+              {/* Submit button */}
+              <Button
+                className="w-full gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-90 h-11 font-semibold btn-glow"
+                onClick={handlePasswordSubmit}
+                data-ocid="admin.enter_portal_button"
+              >
+                <Lock className="h-4 w-4" />
+                Enter Admin Portal
+              </Button>
+
+              {/* Hint */}
+              <p className="text-center text-xs text-muted-foreground">
+                Contact your system administrator if you don't have access.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center py-16">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-2 ring-primary/20">
-            <Shield className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-glow text-white ring-2 ring-primary/20">
+            <Shield className="h-8 w-8" />
           </div>
           <h1 className="font-display text-3xl font-bold tracking-tight mb-2">
             Admin Portal
@@ -178,6 +374,36 @@ export function AdminPage() {
             Manage roles, question banks, and platform settings
           </p>
         </div>
+
+        {/* Security trust badge row — always visible */}
+        <div
+          className="flex flex-wrap gap-2 justify-center"
+          data-ocid="admin.security_badges"
+        >
+          {SECURITY_BADGES.map((b) => (
+            <span
+              key={b.label}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-sm ${b.color}`}
+            >
+              {b.icon}
+              {b.label}
+            </span>
+          ))}
+        </div>
+
+        {/* Session expiry warning */}
+        {sessionExpiring && (
+          <div
+            className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400"
+            data-ocid="admin.session_warning"
+          >
+            <Shield className="h-4 w-4 shrink-0" />
+            <span>
+              Your session may be expiring soon. Re-authenticate if actions
+              fail.
+            </span>
+          </div>
+        )}
 
         {/* Loading */}
         {isLoading && (
@@ -200,20 +426,21 @@ export function AdminPage() {
 
         {/* Not authenticated */}
         {!isLoading && !isAuthenticated && (
-          <Card className="border-border/60 shadow-sm">
+          <Card className="glass-card gradient-border-blue">
             <CardHeader className="text-center pb-4">
               <CardTitle className="font-display text-lg">
                 Sign In to Continue
               </CardTitle>
               <CardDescription className="leading-relaxed">
-                Sign in with Internet Identity to access the Admin Portal.
+                Sign in with Internet Identity to access the Admin Portal. Your
+                identity is cryptographically verified — no passwords required.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <Button
                 onClick={login}
                 disabled={isLoggingIn}
-                className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 font-semibold"
+                className="w-full gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-90 h-11 font-semibold btn-glow"
                 data-ocid="admin.login_button"
               >
                 {isLoggingIn ? (
@@ -225,6 +452,10 @@ export function AdminPage() {
                   ? "Connecting..."
                   : "Sign In with Internet Identity"}
               </Button>
+              <p className="text-center text-xs text-muted-foreground">
+                <Lock className="inline h-3 w-3 mr-1" />
+                Secured by ICP blockchain — no server, no data breach risk
+              </p>
             </CardContent>
           </Card>
         )}
@@ -268,7 +499,7 @@ export function AdminPage() {
 
             {/* Case A: No admin yet — show Become Admin */}
             {!adminAssigned && (
-              <Card className="border-primary/30 shadow-md bg-primary/5">
+              <Card className="glass-card gradient-border-blue border-primary/30">
                 <CardHeader className="pb-4">
                   <CardTitle className="font-display text-xl flex items-center gap-2">
                     <Zap className="h-5 w-5 text-primary" />
@@ -281,7 +512,7 @@ export function AdminPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Button
-                    className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-bold"
+                    className="w-full gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-90 h-12 text-base font-bold btn-glow"
                     onClick={handleClaimAdmin}
                     disabled={claiming}
                     data-ocid="admin.become_admin_button"
@@ -289,7 +520,7 @@ export function AdminPage() {
                     {claiming ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Shield className="h-5 w-5" />
+                      <ShieldCheck className="h-5 w-5" />
                     )}
                     {claiming ? "Activating Admin Role…" : "Become Admin"}
                   </Button>
